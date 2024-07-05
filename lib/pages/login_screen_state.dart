@@ -69,7 +69,7 @@ class LoginScreenState extends ChangeNotifier {
         Future.delayed(Duration(seconds: 1), () {
           Navigator.pushReplacementNamed(
             formKey.currentContext!,
-            '/dashboard',
+            '/home',
             arguments: {
               'name': name,
               'email': email,

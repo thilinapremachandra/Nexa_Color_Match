@@ -1,4 +1,5 @@
 
+import 'package:colornestle/pages/login_screen.dart';
 import 'package:colornestle/pages/register.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
@@ -66,7 +67,7 @@ class _SplashscreenState extends State<Splashscreen> {
 
   Route _createRoute() {
     return PageRouteBuilder(
-      pageBuilder: (context, animation, secondaryAnimation) => const RegisterScreen(),
+      pageBuilder: (context, animation, secondaryAnimation) => const LoginScreen(),
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
         const begin = 0.0;
         const end = 1.0;
