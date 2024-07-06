@@ -107,8 +107,10 @@ flutter:
       - assets/images/image2.png
       - assets/images/image3.png
       - assets/images/image1.png
+      - assets/images/panoramic_image2.jpg
       - assets/icon/
       - assets/Lottie/
+      
       
   #   - images/a_dot_ham.jpeg
 

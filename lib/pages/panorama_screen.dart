@@ -24,22 +24,12 @@ class PanoramaScreen extends StatefulWidget {
 }
 
 class PanoramaScreenState extends State<PanoramaScreen> {
-  late String name;
-  late String email;
-  late int clientid;
+  String name = "defaultName";
+  String email = "defaultEmail@example.com";
   
  
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final args =
-        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-    name = args?['name'] ?? "null";
-    email = args?['email'] ?? "charithabimsara@gmail.com";
-    clientid = args?['clientid'] ?? 0;
-  }
-
+  
   CameraController? _controller;
   List<CameraDescription>? _cameras;
   final List<File> _imageFiles = [];
@@ -276,7 +266,6 @@ Future<void> _showSaveDialog() async {
         Navigator.of(context).pushNamed('/preferenceform', arguments: {
           'name': name,
           'email': email,
-          'clientid': clientid,
           'imageid': imageid,  // Pass the imageid here
         });
       });
@@ -384,6 +373,16 @@ Future<void> _showSaveDialog() async {
 
   @override
   Widget build(BuildContext context) {
+
+    final Map<String, dynamic>? args =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+
+    // If args is not null, update name and email
+    if (args != null) {
+      name = args['name'] ?? "defaultName";
+      email = args['email'] ?? "defaultEmail@example.com";
+    }
+
     return Scaffold(
       body: Stack(
         children: [
@@ -431,7 +430,7 @@ Future<void> _showSaveDialog() async {
                                       vertical: 5, horizontal: 0),
                                 ),
                                 onPressed: _skipGuidelines,
-                                child: Text('Skip',
+                                child: Text(name,
                                     style: TextStyle(
                                         fontSize: 15,
                                         color: Colors.black,

@@ -1,10 +1,16 @@
 import 'dart:convert';
 import 'dart:math';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:http/http.dart' as http;
 
+// Import the custom popup
 import 'package:colornestle/config.dart';
+import 'package:lottie/lottie.dart';
+
+import '../../widgets/button.dart';
+import '../../widgets/custom_popup.dart';
 
 class GenerateImage extends StatefulWidget {
   const GenerateImage({super.key});
@@ -20,6 +26,7 @@ class GenerateImageState extends State<GenerateImage> {
   int? clientid;
   List<Color> _colors = [];
   bool _isSaved = false;
+  bool _hasRated = false;
   int? _selectedColorIndex;
   double _rating = 0.0;
 
@@ -62,6 +69,11 @@ class GenerateImageState extends State<GenerateImage> {
       return;
     }
 
+    if (!_hasRated) {
+      _showRatingDialog();
+      return;
+    }
+
     final url =
         Uri.parse('${Config.baseUrl}/api/v1/colorpallet/saveColorpallet');
     final headers = {"Content-Type": "application/json"};
@@ -81,7 +93,6 @@ class GenerateImageState extends State<GenerateImage> {
         setState(() {
           _isSaved = true;
         });
-        // Handle success
       } else {
         // Handle failure
       }
@@ -108,6 +119,7 @@ class GenerateImageState extends State<GenerateImage> {
     if (result != null) {
       setState(() {
         _rating = result;
+        _hasRated = true;
       });
       _save();
     }
@@ -121,84 +133,110 @@ class GenerateImageState extends State<GenerateImage> {
     });
   }
 
+  void _showColorDetailsBottomSheet() {
+  showCupertinoModalPopup(
+    context: context,
+    builder: (BuildContext context) {
+      return CupertinoPopupSurface(
+        child: Container(
+          width: double.infinity,
+          height: 400,
+          padding: EdgeInsets.all(20),
+          color: Colors.white,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                height: 200,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                    color: _colors[_selectedColorIndex!],
+                    borderRadius: BorderRadius.circular(15)),
+                child: Align(
+                  alignment: Alignment.center,
+                  child: Lottie.asset(
+                    'assets/Lottie/Animation - 1720264601003 (1).json',
+                    width: 100,
+                    height: 100,
+                  ),
+                ),
+              ),
+              SizedBox(height: 10),
+              Text(
+                _colorToHex(_colors[_selectedColorIndex!]),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 30),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Material(
+                    child: CustomButton(
+                      text: 'Save',
+                      height: 40,
+                      width: 150,
+                      onTap: _save,
+                    ),
+                  ),
+                  Material(
+                    child: CustomButton(
+                      text: 'Visualize',
+                      height: 40,
+                      width: 150,
+                      onTap: () async {
+                        await Navigator.pushNamed(
+                          context,
+                          '/panoramicview',
+                          arguments: {
+                            'name': name,
+                            'email': email,
+                            'imageid': imageid
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
+  void _showRegenerateConfirmationDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return CustomPopup(
+          title: 'Confirm',
+          content: 'Are you sure you want to regenerate colors?',
+          buttonOneText: 'Yes',
+          buttonTwoText: 'No',
+          onButtonOnePressed: () {
+            Navigator.of(context).pop();
+            Navigator.pushNamed(context, '/colormatcher');
+          },
+          onButtonTwoPressed: () {
+            Navigator.of(context).pop();
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        titleSpacing: 30.0,
-        automaticallyImplyLeading: false,
-        actions: [
-          SizedBox(width: 25,),
-          InkWell(
-            splashColor: Colors.redAccent,
-            borderRadius: BorderRadius.circular(50),
-            onTap: _selectedColorIndex == null ? null : _showRatingDialog,
-            child: Ink(
-              decoration: BoxDecoration(
-                color: _selectedColorIndex == null ? Colors.grey : Colors.white,
-                borderRadius: BorderRadius.circular(50),
-                border: Border.all(width: 2, color: Colors.black),
-              ),
-              child: Container(
-                padding: EdgeInsets.all(1),
-                height: 25,
-                width: 100,
-                child: const Center(
-                  child: Text(
-                    "Save",
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontFamily: "Lato",
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          Spacer(),
-          InkWell(
-            splashColor: Colors.black45,
-            borderRadius: BorderRadius.circular(50),
-            onTap: _regenerateColors,
-            child: Ink(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(50),
-                border: Border.all(width: 2, color: Colors.black),
-              ),
-              child: Container(
-                padding: EdgeInsets.all(1),
-                height: 25,
-                width: 100,
-                child: const Center(
-                  child: Text(
-                    "Regenerate",
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontFamily: "Lato",
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          SizedBox(width: 25,),
-        ],
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
-        ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
       body: GridView.builder(
         padding: EdgeInsets.all(20),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
           crossAxisSpacing: 10,
           mainAxisSpacing: 10,
-          childAspectRatio: 0.75, // Adjust the aspect ratio as needed
+          childAspectRatio: 0.75,
         ),
         itemCount: _colors.length,
         itemBuilder: (context, index) {
@@ -207,6 +245,7 @@ class GenerateImageState extends State<GenerateImage> {
               setState(() {
                 _selectedColorIndex = index;
               });
+              _showColorDetailsBottomSheet();
             },
             child: Stack(
               children: [
@@ -230,7 +269,7 @@ class GenerateImageState extends State<GenerateImage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Container(
-                            height: 150, // Adjust the height of the colored container
+                            height: 150,
                             decoration: BoxDecoration(
                               color: _colors[index],
                               borderRadius: BorderRadius.circular(15),
@@ -252,8 +291,11 @@ class GenerateImageState extends State<GenerateImage> {
                             alignment: Alignment.center,
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(15),
-                              border: Border.all(width: 1, color: Colors.black45),
-                              color: _selectedColorIndex == index ? Colors.green : Colors.white,
+                              border:
+                                  Border.all(width: 1, color: Colors.black45),
+                              color: _selectedColorIndex == index
+                                  ? Colors.green
+                                  : Colors.white,
                             ),
                             child: Text(
                               'Select',
@@ -269,6 +311,21 @@ class GenerateImageState extends State<GenerateImage> {
             ),
           );
         },
+      ),
+      bottomNavigationBar: BottomAppBar(
+        height: 30,
+        shape: CircularNotchedRectangle(),
+        notchMargin: 5.0,
+        color: Colors.white,
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButton: ClipRRect(
+        borderRadius: BorderRadius.circular(50.0),
+        child: FloatingActionButton(
+          onPressed: _showRegenerateConfirmationDialog,
+          tooltip: 'Regenerate Colors',
+          child: Icon(Icons.restart_alt_sharp),
+        ),
       ),
     );
   }

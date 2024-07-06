@@ -14,6 +14,9 @@ class RoomPage extends StatefulWidget {
 }
 
 class RoomPageState extends State<RoomPage> {
+  String name = "defaultName";
+  String email = "defaultEmail@example.com";
+
   final ScrollController _scrollController = ScrollController();
   final GlobalKey _uploadButtonKey = GlobalKey();
 
@@ -96,6 +99,15 @@ class RoomPageState extends State<RoomPage> {
 
   @override
   Widget build(BuildContext context) {
+    final Map<String, dynamic>? args =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+
+    // If args is not null, update name and email
+    if (args != null) {
+      name = args['name'] ?? "defaultName";
+      email = args['email'] ?? "defaultEmail@example.com";
+    }
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: NestedScrollView(
@@ -122,6 +134,10 @@ class RoomPageState extends State<RoomPage> {
                     Navigator.pushNamed(
                       context,
                       '/panoramacapture',
+                      arguments: {
+                        'name': name,
+                        'email': email,
+                      },
                     );
                   },
                   height: 100,
@@ -131,7 +147,7 @@ class RoomPageState extends State<RoomPage> {
                     size: 60,
                     color: Colors.white,
                   ),
-                  text: "Capture Your Room",
+                  text: " $name",
                   textColor: Colors.white,
                   textSize: 30,
                   width: 120,

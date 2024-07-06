@@ -6,7 +6,9 @@ import 'package:colornestle/pages/splashScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'cubits/room_cubit.dart';
+import 'pages/color_matcher.dart';
 import 'pages/panorama_screen.dart';
+import 'pages/panoramic_view.dart';
 import 'pages/preference_form.dart';
 
 void main() {
@@ -26,12 +28,15 @@ class MyApp extends StatelessWidget {
         initialRoute: '/',
         routes: {
           '/': (context) => const Splashscreen(),
+         
           '/login': (context) => const LoginScreen(),
           '/register': (context) => const RegisterScreen(),
           '/home': (context) => const MainPage(),
           '/details': (context) => const ColorDetailsPage(),
           '/panoramacapture': (context) => const PanoramaScreen(),
           '/preferenceform': (context) => const UserPreferenceForm(),
+          '/colormatcher': (context) => const ColorMatcher(),
+           '/panoramicview': (context) => const PanoramicImageViewer(),
         },
       ),
     );
