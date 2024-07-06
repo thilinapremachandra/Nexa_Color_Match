@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'register_screen_state.dart'; // Ensure this imports your RegisterScreenState class
+import '../state/register_screen_state.dart'; // Ensure this imports your RegisterScreenState class
 
 class RegisterScreen extends StatelessWidget {
   const RegisterScreen({super.key});

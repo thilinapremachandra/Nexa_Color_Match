@@ -20,7 +20,8 @@ class GenerateImageState extends State<GenerateImage> {
   int? clientid;
   List<Color> _colors = [];
   bool _isSaved = false;
-  List<bool> _isFavorite = [];
+  int? _selectedColorIndex;
+  double _rating = 0.0;
 
   @override
   void didChangeDependencies() {
@@ -37,12 +38,11 @@ class GenerateImageState extends State<GenerateImage> {
   void initState() {
     super.initState();
     _colors = getRandomColors();
-    _isFavorite = List.generate(_colors.length, (index) => false);
   }
 
   List<Color> getRandomColors() {
     return List.generate(
-      5,
+      6,
       (index) => Color.fromARGB(
         255,
         Random().nextInt(256),
@@ -56,7 +56,7 @@ class GenerateImageState extends State<GenerateImage> {
     return '#${color.value.toRadixString(16).padLeft(6, '0').substring(2).toUpperCase()}';
   }
 
-  void _save(double rating) async {
+  void _save() async {
     if (_isSaved) {
       _showAlreadySavedMessage();
       return;
@@ -71,7 +71,8 @@ class GenerateImageState extends State<GenerateImage> {
           .map((color) =>
               '#${color.value.toRadixString(16).padLeft(6, '0').substring(2)}')
           .join(' '),
-      'rating': rating
+      'rating': _rating,
+      'selectedColor': _colorToHex(_colors[_selectedColorIndex!])
     });
 
     try {
@@ -105,50 +106,107 @@ class GenerateImageState extends State<GenerateImage> {
       },
     );
     if (result != null) {
-      _save(result);
+      setState(() {
+        _rating = result;
+      });
+      _save();
     }
+  }
+
+  void _regenerateColors() {
+    setState(() {
+      _colors = getRandomColors();
+      _selectedColorIndex = null;
+      _isSaved = false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        leading: IconButton(
-          icon: Icon(Icons.close),
-          onPressed: () {
-            Navigator.of(context)
-                .popUntil((route) => route.settings.name == '/dashboard');
-          },
+        titleSpacing: 30.0,
+        automaticallyImplyLeading: false,
+        actions: [
+          SizedBox(width: 25,),
+          InkWell(
+            splashColor: Colors.redAccent,
+            borderRadius: BorderRadius.circular(50),
+            onTap: _selectedColorIndex == null ? null : _showRatingDialog,
+            child: Ink(
+              decoration: BoxDecoration(
+                color: _selectedColorIndex == null ? Colors.grey : Colors.white,
+                borderRadius: BorderRadius.circular(50),
+                border: Border.all(width: 2, color: Colors.black),
+              ),
+              child: Container(
+                padding: EdgeInsets.all(1),
+                height: 25,
+                width: 100,
+                child: const Center(
+                  child: Text(
+                    "Save",
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontFamily: "Lato",
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Spacer(),
+          InkWell(
+            splashColor: Colors.black45,
+            borderRadius: BorderRadius.circular(50),
+            onTap: _regenerateColors,
+            child: Ink(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(50),
+                border: Border.all(width: 2, color: Colors.black),
+              ),
+              child: Container(
+                padding: EdgeInsets.all(1),
+                height: 25,
+                width: 100,
+                child: const Center(
+                  child: Text(
+                    "Regenerate",
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontFamily: "Lato",
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          SizedBox(width: 25,),
+        ],
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
         ),
-        title: Text("Generate colors"),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
       body: GridView.builder(
         padding: EdgeInsets.all(20),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 1,
+          crossAxisCount: 2,
           crossAxisSpacing: 10,
           mainAxisSpacing: 10,
+          childAspectRatio: 0.75, // Adjust the aspect ratio as needed
         ),
         itemCount: _colors.length,
         itemBuilder: (context, index) {
           return GestureDetector(
-            onTap: () async {
+            onTap: () {
               setState(() {
+                _selectedColorIndex = index;
               });
-              await Navigator.pushNamed(
-                context,
-                '/details',
-                arguments: {
-                  'name': name,
-                  'email': email,
-                  'imageid': imageid,
-                  'color': _colors[index],
-                  'colorHex': _colorToHex(_colors[index]),
-                },
-              );
-              _showRatingDialog();
             },
             child: Stack(
               children: [
@@ -156,26 +214,29 @@ class GenerateImageState extends State<GenerateImage> {
                   children: [
                     Container(
                       padding: EdgeInsets.all(10),
-                      
-                      height: 350,
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(15)
-                        
+                        borderRadius: BorderRadius.circular(15),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.5),
+                            spreadRadius: 5,
+                            blurRadius: 7,
+                            offset: Offset(0, 3),
+                          ),
+                        ],
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        
                         children: [
                           Container(
-                            height: 230,
+                            height: 150, // Adjust the height of the colored container
                             decoration: BoxDecoration(
                               color: _colors[index],
                               borderRadius: BorderRadius.circular(15),
-                             
                             ),
                           ),
-                          SizedBox(height: 20),
+                          SizedBox(height: 10),
                           Container(
                             padding: EdgeInsets.symmetric(horizontal: 10),
                             child: Text(
@@ -185,18 +246,17 @@ class GenerateImageState extends State<GenerateImage> {
                                   fontWeight: FontWeight.bold),
                             ),
                           ),
-                          SizedBox(height: 20),
+                          SizedBox(height: 10),
                           Container(
                             width: double.maxFinite,
                             alignment: Alignment.center,
-                            padding: EdgeInsets.symmetric(vertical: 2),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(15),
-                              border: Border.all(width: 1),
-                              color: Colors.white
+                              border: Border.all(width: 1, color: Colors.black45),
+                              color: _selectedColorIndex == index ? Colors.green : Colors.white,
                             ),
                             child: Text(
-                              'View AR',
+                              'Select',
                               style: TextStyle(color: Colors.black),
                             ),
                           ),
@@ -204,23 +264,6 @@ class GenerateImageState extends State<GenerateImage> {
                       ),
                     ),
                   ],
-                ),
-                Positioned(
-                bottom: 90,
-                  right: 20,
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _isFavorite[index] = !_isFavorite[index];
-                      });
-                    },
-                    child: Icon(
-                      _isFavorite[index]
-                          ? Icons.favorite
-                          : Icons.favorite_border,
-                      color: _isFavorite[index] ? Colors.red : Colors.white,
-                    ),
-                  ),
                 ),
               ],
             ),
@@ -254,7 +297,7 @@ class RatingDialogState extends State<RatingDialog> {
             direction: Axis.horizontal,
             allowHalfRating: true,
             itemCount: 5,
-            itemPadding: EdgeInsets.symmetric(horizontal: 4.0),
+            itemPadding: EdgeInsets.symmetric(horizontal: 1.0),
             itemBuilder: (context, _) => Icon(
               Icons.star,
               color: Colors.amber,

@@ -7,7 +7,7 @@ import 'package:crypto/crypto.dart';
 
 
 import '../config.dart';
-import 'database_check.dart';
+import '../pages/database_check.dart';
 
 class RegisterScreenState extends ChangeNotifier {
   final formKey = GlobalKey<FormState>();

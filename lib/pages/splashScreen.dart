@@ -1,6 +1,4 @@
-
 import 'package:colornestle/pages/login_screen.dart';
-import 'package:colornestle/pages/register.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'dart:async'; // Import for Timer

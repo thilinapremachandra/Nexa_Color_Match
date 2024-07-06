@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:shimmer/shimmer.dart';
-import '../../cubits/room_cubit.dart';
-import '../../widgets/custom_sliver_app_bar_delegate.dart';
-import '../../widgets/responsive_button.dart';
+import '../../../cubits/room_cubit.dart';
+import '../../../widgets/custom_sliver_app_bar_delegate.dart';
+import '../../../widgets/responsive_button.dart';
 
 class RoomPage extends StatefulWidget {
   const RoomPage({super.key});
@@ -21,31 +21,39 @@ class RoomPageState extends State<RoomPage> {
   String _texture = 'all';
   Color? _selectedColor;
 
-  final List<Color> _colorSet = [
-    Colors.red,
-    Colors.blue,
-    Colors.green,
-    Colors.yellow,
-    Colors.orange,
-    Colors.purple,
-    Colors.teal,
-    Colors.brown,
-    Colors.grey,
-    Colors.pink,
-    const Color.fromARGB(255, 179, 146, 146),
-    Colors.black,
-  ];
+  final Map<Color?, String> _colorSet = {
+    null: 'all', // All
+    const Color.fromARGB(255, 255, 0, 0): 'red', // Red
+    const Color.fromARGB(255, 0, 255, 0): 'green', // Green
+    const Color.fromARGB(255, 0, 0, 255): 'blue', // Blue
+    const Color.fromARGB(255, 255, 255, 0): 'yellow', // Yellow
+    const Color.fromARGB(255, 255, 192, 203): 'pink', // Pink
+    const Color.fromARGB(255, 128, 0, 128): 'purple', // Purple
+    const Color.fromARGB(255, 255, 0, 255): 'magenta', // Magenta
+    const Color.fromARGB(255, 128, 128, 128): 'grey', // Grey
+    const Color.fromARGB(255, 255, 255, 255): 'white', // White
+    const Color.fromARGB(255, 0, 0, 0): 'black', // Black
+    const Color.fromARGB(255, 165, 42, 42): 'brown', // Brown
+    const Color.fromARGB(255, 255, 165, 0): 'orange', // Orange
+    const Color.fromARGB(255, 64, 224, 208): 'turquoise', // Turquoise
+    const Color.fromARGB(255, 0, 128, 128): 'teal', // Teal
+    const Color.fromARGB(255, 230, 230, 250): 'lavender', // Lavender
+    const Color.fromARGB(255, 0, 0, 128): 'navy', // Navy
+    const Color.fromARGB(255, 245, 245, 220): 'beige', // Beige
+    const Color.fromARGB(255, 255, 127, 80): 'coral', // Coral
+    const Color.fromARGB(255, 62, 180, 137): 'mint', // Mint
+    const Color.fromARGB(255, 225, 229, 180): 'peach', // Peach
+    const Color.fromARGB(255, 255, 215, 0): 'gold', // Gold
+    const Color.fromARGB(255, 192, 192, 192): 'silver', // Silver
+  };
 
   @override
   void initState() {
     super.initState();
-
     _scrollController.addListener(_onScroll);
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkButtonVisibility();
     });
-
     _fetchImages();
   }
 
@@ -61,8 +69,8 @@ class RoomPageState extends State<RoomPage> {
   }
 
   void _checkButtonVisibility() {
-     final renderBox =
-          _uploadButtonKey.currentContext?.findRenderObject() as RenderBox?;
+    final renderBox =
+        _uploadButtonKey.currentContext?.findRenderObject() as RenderBox?;
     if (renderBox != null) {
       final position = renderBox.localToGlobal(Offset.zero).dy;
       final screenHeight = MediaQuery.of(context).size.height;
@@ -76,9 +84,12 @@ class RoomPageState extends State<RoomPage> {
   }
 
   void _fetchImages() {
-    String colorParam = _selectedColor != null
-        ? '#${_selectedColor!.value.toRadixString(16).substring(2)}'
-        : 'all';
+    // String colorParam = _selectedColor != null
+    //     ? '#${_selectedColor!.value.toRadixString(16).substring(2)}'
+    //     : 'all';
+    String colorParam =
+        _selectedColor != null ? _colorSet[_selectedColor]! : 'all';
+
     BlocProvider.of<RoomCubit>(context)
         .fetchImages(_complexity, _texture, colorParam);
   }
@@ -115,12 +126,12 @@ class RoomPageState extends State<RoomPage> {
                   },
                   height: 100,
                   iconColor: Colors.white,
-                  icon: Icon(
+                  icon: const Icon(
                     Icons.add_a_photo,
                     size: 60,
                     color: Colors.white,
                   ),
-                  text: "Upload Your Room",
+                  text: "Capture Your Room",
                   textColor: Colors.white,
                   textSize: 30,
                   width: 120,
@@ -168,7 +179,8 @@ class RoomPageState extends State<RoomPage> {
                           value: _complexity,
                           items: const [
                             DropdownMenuItem(value: 'low', child: Text('Low')),
-                            DropdownMenuItem(value: 'high', child: Text('High')),
+                            DropdownMenuItem(
+                                value: 'high', child: Text('High')),
                             DropdownMenuItem(value: 'all', child: Text('All')),
                           ],
                           onChanged: (value) {
@@ -177,7 +189,7 @@ class RoomPageState extends State<RoomPage> {
                               _fetchImages();
                             });
                           },
-                          hint: const Text('complex'),
+                          hint: const Text('Complexity'),
                         ),
                         DropdownButton<String>(
                           value: _texture,
@@ -205,11 +217,14 @@ class RoomPageState extends State<RoomPage> {
                                     child: Wrap(
                                       spacing: 8.0,
                                       runSpacing: 8.0,
-                                      children: _colorSet.map((color) {
+                                      children: _colorSet.keys.map((color) {
+                                        final bool isSelected =
+                                            _selectedColor == color;
                                         return GestureDetector(
                                           onTap: () {
                                             setState(() {
-                                              _selectedColor = color;
+                                              _selectedColor =
+                                                  isSelected ? null : color;
                                               Navigator.of(context).pop();
                                               _fetchImages();
                                             });
@@ -244,7 +259,7 @@ class RoomPageState extends State<RoomPage> {
                               borderRadius: BorderRadius.circular(10),
                             ),
                           ),
-                          child: Icon(Icons.color_lens),
+                          child: const Icon(Icons.color_lens),
                         ),
                       ],
                     ),
@@ -271,7 +286,7 @@ class RoomPageState extends State<RoomPage> {
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(10),
                           child: Image.network(
-                            state.images[index].imgurl,
+                            state.images[index].augmentedImageUrl,
                             fit: BoxFit.cover,
                           ),
                         ),
@@ -295,13 +310,13 @@ class RoomPageState extends State<RoomPage> {
             child: Container(
               width: 100,
               height: 100,
-              padding: EdgeInsets.all(10),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(50),
               ),
               child: FloatingActionButton(
-                shape: CircleBorder(eccentricity: 1),
+                shape: const CircleBorder(),
                 backgroundColor: Colors.red,
                 onPressed: () {},
                 child: const Icon(

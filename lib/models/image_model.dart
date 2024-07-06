@@ -1,30 +1,36 @@
-// image_model.dart
-
 class ImageModel {
-  final int id;
   final String email;
-  final String complexity;
+  final String interiorImageId;
+  final String augmentedImageUrl;
   final String texture;
-  final String color;
-  final String imgurl;
+  final String complexityScore;
+  final String interiorImageUrl;
+  final String generates;
+  final String timeStamp;
 
   ImageModel({
-    required this.id,
     required this.email,
-    required this.complexity,
+    required this.interiorImageId,
+    required this.augmentedImageUrl,
     required this.texture,
-    required this.color,
-    required this.imgurl,
+    required this.complexityScore,
+    required this.interiorImageUrl,
+    required this.generates,
+    required this.timeStamp,
   });
 
   factory ImageModel.fromJson(Map<String, dynamic> json) {
     return ImageModel(
-      id: json['id'],
-      email: json['email'],
-      complexity: json['complexity'],
-      texture: json['texture'],
-      color: json['final_color'],
-      imgurl: json['augmented_image'],
+      email: json['email'].toString(),
+      interiorImageId: json['interiorImageId'].toString(),
+      augmentedImageUrl: json['augmentedImageUrl'].toString(),
+      texture: json['texture'].toString(),
+      complexityScore: json['complexityScore'].toString(),
+      interiorImageUrl: json['interiorImageUrl'].toString(),
+      generates: json['generates'].toString(),
+      timeStamp: json['timeStamp'].toString(),
     );
   }
+
+  get imgurl => null;
 }

@@ -13,7 +13,8 @@ class ColorDetailsPageState extends State<ColorDetailsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    final args =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
     final color = args?['color'] as Color?;
     final colorHex = args?['colorHex'] as String?;
 
@@ -33,27 +34,29 @@ class ColorDetailsPageState extends State<ColorDetailsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: color,
-                  borderRadius: BorderRadius.circular(15),
-                ),
+            Container(
+              height: 350,
+              width: double.maxFinite,
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(15),
               ),
             ),
             SizedBox(height: 20),
-            Text(
-              colorHex ?? '',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    colorHex ?? '',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                Icon(Icons.favorite_border_rounded),
+              ],
             ),
-            SizedBox(height: 10),
+            SizedBox(height: 20),
             Text(
-              'Paints',
-              style: TextStyle(fontSize: 18),
-            ),
-            SizedBox(height: 10),
-            Text(
-              'Product Details',
+              'Colort Details',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 10),
@@ -62,46 +65,36 @@ class ColorDetailsPageState extends State<ColorDetailsPage> {
               style: TextStyle(fontSize: 18),
             ),
             SizedBox(height: 20),
-            Text(
-              'Rate this color:',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            RatingBar.builder(
-              initialRating: _rating,
-              minRating: 1,
-              direction: Axis.horizontal,
-              allowHalfRating: true,
-              itemCount: 5,
-              itemPadding: EdgeInsets.symmetric(horizontal: 4.0),
-              itemBuilder: (context, _) => Icon(
-                Icons.star,
-                color: Colors.amber,
-              ),
-              onRatingUpdate: (rating) {
-                setState(() {
-                  _rating = rating;
-                });
-              },
-            ),
-            SizedBox(height: 20),
-            GestureDetector(
-              onTap: () {
-                // Handle view action here
-              },
-              child: Container(
-                alignment: Alignment.center,
-                padding: EdgeInsets.symmetric(vertical: 15),
-                decoration: BoxDecoration(
-                  color: Colors.red,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  'View AR',
-                  style: TextStyle(color: Colors.white, fontSize: 18),
+            Spacer(),
+            InkWell(
+                splashColor: Colors.redAccent,
+                borderRadius: BorderRadius.circular(15),
+                onTap: (){}, // Directly call the method
+                child: Ink(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(15),
+                    border: Border.all(width: 2, color: Colors.black),
+                  ),
+                  child: Container(
+                    padding: EdgeInsets.all(10),
+                    height: 51,
+                    width: double.maxFinite,
+                    child: const Center(
+                      child: Text(
+                        "View AR",
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 20,
+                          fontFamily: "Lato",
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ],
+               ],
         ),
       ),
     );

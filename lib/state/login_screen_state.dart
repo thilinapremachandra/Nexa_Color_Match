@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -19,6 +18,7 @@ class LoginScreenState extends ChangeNotifier {
 
   LoginScreenState() {
     emailController.addListener(_validateEmail);
+    
   }
 
   void toggleObscurePassword() {
@@ -60,11 +60,13 @@ class LoginScreenState extends ChangeNotifier {
         final responseData = jsonDecode(response.body);
         final String name = '${responseData['fname']} ${responseData['lname']}';
         final String email = responseData['email'];
-        
+
         isLoading = false;
         notifyListeners();
         Navigator.of(formKey.currentContext!).pop();
         showLoginSuccessDialog('Login Successful');
+
+        clearInputFields();
 
         Future.delayed(Duration(seconds: 1), () {
           Navigator.pushReplacementNamed(
@@ -84,12 +86,17 @@ class LoginScreenState extends ChangeNotifier {
         showErrorDialog(errorMessage);
       }
     } catch (e) {
-      errorMessage = 'An error occurred. Please try again.';
+      errorMessage = 'Invalid email or password';
       isLoading = false;
       notifyListeners();
       Navigator.of(formKey.currentContext!).pop();
       showErrorDialog(errorMessage);
     }
+  }
+
+  void clearInputFields() {
+    emailController.clear();
+    passwordController.clear();
   }
 
   void showLoadingDialog() {
