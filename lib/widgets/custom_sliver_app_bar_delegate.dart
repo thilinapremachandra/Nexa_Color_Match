@@ -35,7 +35,7 @@ class CustomSliverAppBarDelegate extends SliverPersistentHeaderDelegate {
           child: Column(
             children: [
               Text(
-                'Select a room',
+                'Capture a room',
                 style: TextStyle(
                   color: Colors.black,
                   fontWeight: FontWeight.w900,

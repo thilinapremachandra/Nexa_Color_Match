@@ -147,7 +147,7 @@ class RoomPageState extends State<RoomPage> {
                     size: 60,
                     color: Colors.white,
                   ),
-                  text: " $name",
+                  text: "Capture your room",
                   textColor: Colors.white,
                   textSize: 30,
                   width: 120,

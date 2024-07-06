@@ -18,21 +18,9 @@ class UserPreferenceForm extends StatefulWidget {
 }
 
 class UserPreferenceFormState extends State<UserPreferenceForm> {
-  late String name;
-  late String email;
-  late int clientid;
-  late int imageid;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final args =
-        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-    name = args?['name'] ?? "null";
-    email = args?['email'] ?? "charithabimsara@gmail.com";
-    clientid = args?['clientid'] ?? 0;
-    imageid = args?['imageid'] ?? 0;
-  }
+  String name = "defaultName";
+  String email = "defaultEmail@example.com";
+  int imageid = 0;
 
   String _budget = 'Low Budget';
   final List<Color> _favoriteColors = [];
@@ -89,6 +77,14 @@ class UserPreferenceFormState extends State<UserPreferenceForm> {
 
   @override
   Widget build(BuildContext context) {
+    final Map<String, dynamic>? args =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    if (args != null) {
+      name = args['name'] ?? "defaultName";
+      email = args['email'] ?? "defaultEmail@example.com";
+       imageid = int.tryParse(args['imageid']?.toString() ?? '0') ?? 0;
+    }
+
     return Scaffold(
       appBar: AppBar(),
       body: SingleChildScrollView(
@@ -152,7 +148,6 @@ class UserPreferenceFormState extends State<UserPreferenceForm> {
                                 'imageid': imageid,
                                 'name': name,
                                 'email': email,
-                                'clientid': clientid,
                               });
                             },
                             child: Container(
@@ -604,8 +599,9 @@ class UserPreferenceFormState extends State<UserPreferenceForm> {
     return '#${hex.substring(2)}'; // Take the last 6 characters, which represent the RGB values
   }
 
-Future<void> sendFormData() async {
-    final apiUrl = '${Config.baseUrl}/api/client-preferences'; // Replace with your API endpoint
+  Future<void> sendFormData() async {
+    final apiUrl =
+        '${Config.baseUrl}/api/client-preferences'; // Replace with your API endpoint
 
     // Create a map of the form data
     final Map<String, dynamic> formData = {
@@ -634,24 +630,13 @@ Future<void> sendFormData() async {
       if (!mounted) return; // Check if the widget is still mounted
 
       if (response.statusCode == 200) {
-        showSuccessDialog(
-          context,
-          'Form submitted successfully!',
-          Icons.check_circle,
-        );
-
-        Future.delayed(Duration(seconds: 2), () {
-          Navigator.of(context).pushNamed('/colormatcher', arguments: {
-            'imageid': imageid,
-            'name': name,
-            'email': email,
-            'clientid': clientid,
-          });
-        });
+        showSuccessDialog(context);
       } else {
         // Handle error
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to submit the form: ${response.statusCode}')),
+          SnackBar(
+              content:
+                  Text('Failed to submit the form: ${response.statusCode}')),
         );
       }
     } catch (error) {
@@ -666,47 +651,26 @@ Future<void> sendFormData() async {
     }
   }
 
-  void showSuccessDialog(BuildContext context, String message, IconData icon) {
+  void showSuccessDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          content: Container(
-            width: double.infinity,
-            height: 250,
-            color: Colors.white,
-            child: Center(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    height: 100,
-                    width: 100,
-                    decoration: BoxDecoration(
-                      color: Colors.green,
-                      borderRadius: BorderRadius.circular(100),
-                    ),
-                    child: Icon(
-                      icon, // Use the icon parameter here
-                      color: Colors.white,
-                      size: 80,
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  Text(
-                    message,
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 20,
-                      fontFamily: "Lato",
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ],
-              ),
+          title: const Text('Success'),
+          content: const Text('Form data sent successfully!'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+                Navigator.of(context).pushNamed('/colormatcher', arguments: {
+                  'imageid': imageid,
+                  'name': name,
+                  'email': email,
+                }); // Navigate to colormatcher page
+              },
+              child: const Text('OK'),
             ),
-          ),
+          ],
         );
       },
     );

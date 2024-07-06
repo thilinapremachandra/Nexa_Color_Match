@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 
 class TransparentAppBarPage {
-  static final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
-
-  static AppBar getAppBar(String title) {
+  static AppBar getAppBar(String title, GlobalKey<ScaffoldState> scaffoldKey) {
     return AppBar(
       centerTitle: true,
       title: Text(

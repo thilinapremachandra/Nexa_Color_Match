@@ -57,9 +57,14 @@ class _SidebarDrawerState extends State<SidebarDrawer> {
           ListTile(
             leading: Icon(Icons.home),
             title: Text('Home'),
+
             onTap: () {
-              // Handle Home tap
               Navigator.pop(context); // Close the drawer
+              Navigator.pushNamed(
+                context,
+                '/home',
+                arguments: {'name': name, 'email': email},
+              );
             },
           ),
           ListTile(
@@ -74,8 +79,12 @@ class _SidebarDrawerState extends State<SidebarDrawer> {
             leading: Icon(Icons.feedback),
             title: Text('Feedback'),
             onTap: () {
-              // Handle Favorites tap
               Navigator.pop(context); // Close the drawer
+              Navigator.pushNamed(
+                context,
+                '/feedback',
+                arguments: {'name': name, 'email': email},
+              );
             },
           ),
           ListTile(
@@ -94,8 +103,12 @@ class _SidebarDrawerState extends State<SidebarDrawer> {
             leading: Icon(Icons.history),
             title: Text('History'),
             onTap: () {
-              // Handle History tap
               Navigator.pop(context); // Close the drawer
+              Navigator.pushNamed(
+                context,
+                '/history',
+                arguments: {'name': name, 'email': email},
+              );
             },
           ),
           ListTile(

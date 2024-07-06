@@ -20,26 +20,17 @@ class GenerateImage extends StatefulWidget {
 }
 
 class GenerateImageState extends State<GenerateImage> {
-  String? name;
-  String? email;
-  int? imageid;
-  int? clientid;
+
+  String name = "defaultName";
+  String email = "defaultEmail@example.com";
+  int imageid = 0;
+
+
   List<Color> _colors = [];
   bool _isSaved = false;
   bool _hasRated = false;
   int? _selectedColorIndex;
   double _rating = 0.0;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final args =
-        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-    name = args?['name'] ?? "null";
-    email = args?['email'] ?? "charithabimsara@gmail.com";
-    clientid = args?['clientid'] ?? 0;
-    imageid = args?['imageid'] ?? 0;
-  }
 
   @override
   void initState() {
@@ -64,42 +55,50 @@ class GenerateImageState extends State<GenerateImage> {
   }
 
   void _save() async {
-    if (_isSaved) {
-      _showAlreadySavedMessage();
-      return;
-    }
+  print("Email before API call: $email"); // Debugging line
 
-    if (!_hasRated) {
-      _showRatingDialog();
-      return;
-    }
-
-    final url =
-        Uri.parse('${Config.baseUrl}/api/v1/colorpallet/saveColorpallet');
-    final headers = {"Content-Type": "application/json"};
-    final body = jsonEncode({
-      'imageid': imageid,
-      'colorcode': _colors
-          .map((color) =>
-              '#${color.value.toRadixString(16).padLeft(6, '0').substring(2)}')
-          .join(' '),
-      'rating': _rating,
-      'selectedColor': _colorToHex(_colors[_selectedColorIndex!])
-    });
-
-    try {
-      final response = await http.post(url, headers: headers, body: body);
-      if (response.statusCode == 200) {
-        setState(() {
-          _isSaved = true;
-        });
-      } else {
-        // Handle failure
-      }
-    } catch (e) {
-      // Handle error
-    }
+  if (_isSaved) {
+    _showAlreadySavedMessage();
+    return;
   }
+
+  if (!_hasRated) {
+    _showRatingDialog();
+    return;
+  }
+
+  final url =
+      Uri.parse('${Config.baseUrl}/api/colorCode/updateColorPalletColorCode');
+  final headers = {"Content-Type": "application/json"};
+  final body = jsonEncode({
+    'email': email,
+    'colorPalletColorId':15,
+
+    'imageColorPalletId': imageid,
+    'colorGroup':"magneta",
+    'colorcode': _colors
+        .map((color) =>
+            '#${color.value.toRadixString(16).padLeft(6, '0').substring(2)}')
+        .join(' '),
+    // 'rating': _rating,
+    'selectedColor': _colorToHex(_colors[_selectedColorIndex!])
+  });
+
+  try {
+    final response = await http.post(url, headers: headers, body: body);
+    print("Response: ${response.body}"); // Debugging line
+    if (response.statusCode == 200) {
+      setState(() {
+        _isSaved = true;
+      });
+    } else {
+      // Handle failure
+    }
+  } catch (e) {
+    // Handle error
+  }
+}
+
 
   void _showAlreadySavedMessage() {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -229,6 +228,15 @@ class GenerateImageState extends State<GenerateImage> {
 
   @override
   Widget build(BuildContext context) {
+
+    final Map<String, dynamic>? args =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    if (args != null) {
+      name = args['name'] ?? "defaultName";
+      email = args['email'] ?? "defaultEmail@example.com";
+       imageid = int.tryParse(args['imageid']?.toString() ?? '0') ?? 0;
+    }
+
     return Scaffold(
       body: GridView.builder(
         padding: EdgeInsets.all(20),
@@ -321,7 +329,9 @@ class GenerateImageState extends State<GenerateImage> {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: ClipRRect(
         borderRadius: BorderRadius.circular(50.0),
+        
         child: FloatingActionButton(
+          
           onPressed: _showRegenerateConfirmationDialog,
           tooltip: 'Regenerate Colors',
           child: Icon(Icons.restart_alt_sharp),

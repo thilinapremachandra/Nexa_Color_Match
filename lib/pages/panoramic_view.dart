@@ -10,8 +10,10 @@ class PanoramicImageViewer extends StatefulWidget {
 }
 
 class _PanoramicImageViewerState extends State<PanoramicImageViewer> {
-  String? name;
-  String? email;
+  String name = "defaultName";
+  String email = "defaultEmail@example.com";
+  int imageid = 0;
+
   String imageUrl = "assets/images/panoramic_image.jpg";
   bool showAnimation = true;
 
@@ -19,9 +21,11 @@ class _PanoramicImageViewerState extends State<PanoramicImageViewer> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-    name = args?['name'] ?? "null";
-    email = args?['email'] ?? "example@example.com";
+    name = args?['name'] ?? "defaultName";
+    email = args?['email'] ?? "defaultEmail@example.com";
+    
     imageUrl = args?['image'] ?? "assets/images/panoramic_image2.jpg";
+     imageid = int.tryParse(args?['imageid']?.toString() ?? '0') ?? 0;
 
     // Optional: Add a delay before hiding the animation
     Future.delayed(Duration(seconds: 5), () {

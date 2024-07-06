@@ -430,7 +430,7 @@ Future<void> _showSaveDialog() async {
                                       vertical: 5, horizontal: 0),
                                 ),
                                 onPressed: _skipGuidelines,
-                                child: Text(name,
+                                child: Text("Skip",
                                     style: TextStyle(
                                         fontSize: 15,
                                         color: Colors.black,

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'navpages/main_page.dart';
+
+
 class ColorMatcher extends StatefulWidget {
   const ColorMatcher({super.key});
 
@@ -7,23 +10,10 @@ class ColorMatcher extends StatefulWidget {
   State<ColorMatcher> createState() => ColorMatcherState();
 }
 
-class ColorMatcherState extends State<ColorMatcher>
-    with SingleTickerProviderStateMixin {
-  late String name;
-  late String email;
-  late int clientid;
-  late int imageid;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final args =
-        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-    name = args?['name'] ?? "null";
-    email = args?['email'] ?? "charithabimsara@gmail.com";
-    clientid = args?['clientid'] ?? 0;
-    imageid = args?['imageid'] ?? 0;
-  }
+class ColorMatcherState extends State<ColorMatcher> with SingleTickerProviderStateMixin {
+  String name = "defaultName";
+  String email = "defaultEmail@example.com";
+  int imageid = 0;
 
   int _animationStage = 0;
   late AnimationController _colorAnimationController;
@@ -74,19 +64,23 @@ class ColorMatcherState extends State<ColorMatcher>
         setState(() => _animationStage = 6);
       }
     });
-    // Add more stages as needed, with delays in between
 
-    // Navigate to a new page after 1000 seconds
     await Future.delayed(Duration(seconds: 2), () {
       if (mounted) {
-        Navigator.pop(context);
-
-        Navigator.pushNamed(context, '/visualize', arguments: {
-          'imageid': imageid,
-          'name': name,
-          'email': email,
-          'clientid': clientid,
-        });
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => MainPage(),
+            settings: RouteSettings(
+              arguments: {
+                'name': name,
+                'email': email,
+                'imageid':imageid,
+                'initialIndex': 2, // Index for the Color tab
+              },
+            ),
+          ),
+        );
       }
     });
   }
@@ -99,6 +93,14 @@ class ColorMatcherState extends State<ColorMatcher>
 
   @override
   Widget build(BuildContext context) {
+     final Map<String, dynamic>? args =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    if (args != null) {
+      name = args['name'] ?? "defaultName";
+      email = args['email'] ?? "defaultEmail@example.com";
+      imageid = int.tryParse(args['imageid']?.toString() ?? '0') ?? 0;
+    }
+
     return Scaffold(
       body: Center(
         child: Column(
@@ -111,8 +113,7 @@ class ColorMatcherState extends State<ColorMatcher>
                   height: 200,
                   width: 200,
                   decoration: BoxDecoration(
-                    color: _colorAnimation.value ??
-                        Colors.blue, // Fallback to a default color if null
+                    color: _colorAnimation.value ?? Colors.blue,
                     shape: BoxShape.circle,
                   ),
                   child: CircularProgressIndicator(
@@ -144,9 +145,7 @@ class ColorMatcherState extends State<ColorMatcher>
                                           ? 'Color Match Successful...'
                                           : _animationStage == 6
                                               ? 'Redirecting to Visualize page...'
-                                              :
-                                              // Add more stages as needed
-                                              '',
+                                              : '',
                   key: ValueKey<int>(_animationStage),
                   style: TextStyle(
                       fontSize: 30,
@@ -155,7 +154,6 @@ class ColorMatcherState extends State<ColorMatcher>
                 ),
               ),
             ),
-            // Add more animations as needed
           ],
         ),
       ),

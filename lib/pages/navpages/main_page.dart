@@ -7,7 +7,6 @@ import '../check_page.dart';
 import '../home_page.dart';
 import 'generate_image.dart';
 import 'room_page.dart';
-// Make sure to update the import to match your project structure
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -17,16 +16,20 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   String name = "defaultName";
   String email = "defaultEmail@example.com";
-  
+  int imageid = 0;
+  int currentIndex = 0;
+
   List<String> pageTitles = [
     '',
     '',
     '',
     ''
   ];
-  
+
   List<Widget> pages = [
     const HomePage(),
     const RoomPage(),
@@ -34,7 +37,22 @@ class _MainPageState extends State<MainPage> {
     Placeholder(), // Placeholder, will be replaced dynamically
   ];
 
-  int currentIndex = 0;
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final Map<String, dynamic>? args =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+
+    // If args is not null, update name, email, and currentIndex
+    if (args != null) {
+      setState(() {
+        name = args['name'] ?? "defaultName";
+        email = args['email'] ?? "defaultEmail@example.com";
+        imageid = int.tryParse(args['imageid']?.toString() ?? '0') ?? 0;
+        // currentIndex = args['initialIndex'] ?? 0;
+      });
+    }
+  }
 
   void onTap(int index) {
     setState(() {
@@ -58,19 +76,10 @@ class _MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
-    final Map<String, dynamic>? args =
-        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-
-    // If args is not null, update name and email
-    if (args != null) {
-      name = args['name'] ?? "defaultName";
-      email = args['email'] ?? "defaultEmail@example.com";
-    }
-
     double displayWidth = MediaQuery.of(context).size.width;
     return Scaffold(
-      key: TransparentAppBarPage.scaffoldKey,
-      appBar: TransparentAppBarPage.getAppBar(pageTitles[currentIndex]),
+      key: _scaffoldKey,
+      appBar: TransparentAppBarPage.getAppBar(pageTitles[currentIndex], _scaffoldKey),
       body: currentIndex != 3 ? pages[currentIndex] : Container(), // Display page or empty container for CheckPage
       drawer: SidebarDrawer(name: name, email: email),
       bottomNavigationBar: Container(
