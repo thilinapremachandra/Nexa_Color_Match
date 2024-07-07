@@ -20,11 +20,9 @@ class GenerateImage extends StatefulWidget {
 }
 
 class GenerateImageState extends State<GenerateImage> {
-
   String name = "defaultName";
   String email = "defaultEmail@example.com";
   int imageid = 0;
-
 
   List<Color> _colors = [];
   bool _isSaved = false;
@@ -54,51 +52,73 @@ class GenerateImageState extends State<GenerateImage> {
     return '#${color.value.toRadixString(16).padLeft(6, '0').substring(2).toUpperCase()}';
   }
 
-  void _save() async {
-  print("Email before API call: $email"); // Debugging line
+  Future<void> _save() async {
+    print("Email before API call: $email"); // Debugging line
 
-  if (_isSaved) {
-    _showAlreadySavedMessage();
-    return;
-  }
-
-  if (!_hasRated) {
-    _showRatingDialog();
-    return;
-  }
-
-  final url =
-      Uri.parse('${Config.baseUrl}/api/colorCode/updateColorPalletColorCode');
-  final headers = {"Content-Type": "application/json"};
-  final body = jsonEncode({
-    'email': email,
-    'colorPalletColorId':15,
-
-    'imageColorPalletId': imageid,
-    'colorGroup':"magneta",
-    'colorcode': _colors
-        .map((color) =>
-            '#${color.value.toRadixString(16).padLeft(6, '0').substring(2)}')
-        .join(' '),
-    // 'rating': _rating,
-    'selectedColor': _colorToHex(_colors[_selectedColorIndex!])
-  });
-
-  try {
-    final response = await http.post(url, headers: headers, body: body);
-    print("Response: ${response.body}"); // Debugging line
-    if (response.statusCode == 200) {
-      setState(() {
-        _isSaved = true;
-      });
-    } else {
-      // Handle failure
+    if (_isSaved) {
+      _showAlreadySavedMessage();
+      return;
     }
-  } catch (e) {
-    // Handle error
-  }
-}
 
+    if (!_hasRated) {
+      _showRatingDialog();
+      return;
+    }
+
+    await _updateColorPallet();
+    await _updateColorPalletColorCode();
+
+    setState(() {
+      _isSaved = true;
+    });
+  }
+
+  Future<void> _updateColorPallet() async {
+    final url =
+        Uri.parse('${Config.baseUrl}/api/colorpallet/updateColorPallet');
+    final headers = {"Content-Type": "application/json"};
+    final body = jsonEncode({
+      'imageColorPalletId': imageid.toString(),
+      'email': email,
+      'rating': _rating.toString(),
+    });
+
+    try {
+      final response = await http.post(url, headers: headers, body: body);
+      print(
+          "Response from updateColorPallet: ${response.body}"); // Debugging line
+      if (response.statusCode != 200) {
+        // Handle failure
+      }
+    } catch (e) {
+      // Handle error
+    }
+  }
+
+  Future<void> _updateColorPalletColorCode() async {
+    final url =
+        Uri.parse('${Config.baseUrl}/api/colorCode/updateColorPalletColorCode');
+    final headers = {"Content-Type": "application/json"};
+    final body = jsonEncode({
+      'email': email,
+      // 'colorPalletColorId': '1',
+      'colorCode': _colors.map((color) => _colorToHex(color)).join(','),
+      'selectedColor': _colorToHex(_colors[_selectedColorIndex!]),
+      'colorGroup': 'yellow',
+      'imageColorPalletId': imageid.toString(),
+    });
+
+    try {
+      final response = await http.post(url, headers: headers, body: body);
+      print(
+          "Response from updateColorPalletColorCode: ${response.body}"); // Debugging line
+      if (response.statusCode != 200) {
+        // Handle failure
+      }
+    } catch (e) {
+      // Handle error
+    }
+  }
 
   void _showAlreadySavedMessage() {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -133,77 +153,77 @@ class GenerateImageState extends State<GenerateImage> {
   }
 
   void _showColorDetailsBottomSheet() {
-  showCupertinoModalPopup(
-    context: context,
-    builder: (BuildContext context) {
-      return CupertinoPopupSurface(
-        child: Container(
-          width: double.infinity,
-          height: 400,
-          padding: EdgeInsets.all(20),
-          color: Colors.white,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                height: 200,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                    color: _colors[_selectedColorIndex!],
-                    borderRadius: BorderRadius.circular(15)),
-                child: Align(
-                  alignment: Alignment.center,
-                  child: Lottie.asset(
-                    'assets/Lottie/Animation - 1720264601003 (1).json',
-                    width: 100,
-                    height: 100,
+    showCupertinoModalPopup(
+      context: context,
+      builder: (BuildContext context) {
+        return CupertinoPopupSurface(
+          child: Container(
+            width: double.infinity,
+            height: 400,
+            padding: EdgeInsets.all(20),
+            color: Colors.white,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  height: 200,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                      color: _colors[_selectedColorIndex!],
+                      borderRadius: BorderRadius.circular(15)),
+                  child: Align(
+                    alignment: Alignment.center,
+                    child: Lottie.asset(
+                      'assets/Lottie/Animation - 1720264601003 (1).json',
+                      width: 100,
+                      height: 100,
+                    ),
                   ),
                 ),
-              ),
-              SizedBox(height: 10),
-              Text(
-                _colorToHex(_colors[_selectedColorIndex!]),
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 30),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Material(
-                    child: CustomButton(
-                      text: 'Save',
-                      height: 40,
-                      width: 150,
-                      onTap: _save,
+                SizedBox(height: 10),
+                Text(
+                  _colorToHex(_colors[_selectedColorIndex!]),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 30),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Material(
+                      child: CustomButton(
+                        text: 'Save',
+                        height: 40,
+                        width: 150,
+                        onTap: _save,
+                      ),
                     ),
-                  ),
-                  Material(
-                    child: CustomButton(
-                      text: 'Visualize',
-                      height: 40,
-                      width: 150,
-                      onTap: () async {
-                        await Navigator.pushNamed(
-                          context,
-                          '/panoramicview',
-                          arguments: {
-                            'name': name,
-                            'email': email,
-                            'imageid': imageid
-                          },
-                        );
-                      },
+                    Material(
+                      child: CustomButton(
+                        text: 'Visualize',
+                        height: 40,
+                        width: 150,
+                        onTap: () async {
+                          await Navigator.pushNamed(
+                            context,
+                            '/panoramicview',
+                            arguments: {
+                              'name': name,
+                              'email': email,
+                              'imageid': imageid
+                            },
+                          );
+                        },
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
-        ),
-      );
-    },
-  );
-}
+        );
+      },
+    );
+  }
 
   void _showRegenerateConfirmationDialog() {
     showDialog(
@@ -216,7 +236,11 @@ class GenerateImageState extends State<GenerateImage> {
           buttonTwoText: 'No',
           onButtonOnePressed: () {
             Navigator.of(context).pop();
-            Navigator.pushNamed(context, '/colormatcher');
+            Navigator.of(context).pushNamed('/colormatcher', arguments: {
+              'imageid': imageid,
+              'name': name,
+              'email': email,
+            });
           },
           onButtonTwoPressed: () {
             Navigator.of(context).pop();
@@ -228,13 +252,12 @@ class GenerateImageState extends State<GenerateImage> {
 
   @override
   Widget build(BuildContext context) {
-
     final Map<String, dynamic>? args =
         ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
     if (args != null) {
       name = args['name'] ?? "defaultName";
       email = args['email'] ?? "defaultEmail@example.com";
-       imageid = int.tryParse(args['imageid']?.toString() ?? '0') ?? 0;
+      imageid = int.tryParse(args['imageid']?.toString() ?? '0') ?? 0;
     }
 
     return Scaffold(
@@ -329,9 +352,7 @@ class GenerateImageState extends State<GenerateImage> {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: ClipRRect(
         borderRadius: BorderRadius.circular(50.0),
-        
         child: FloatingActionButton(
-          
           onPressed: _showRegenerateConfirmationDialog,
           tooltip: 'Regenerate Colors',
           child: Icon(Icons.restart_alt_sharp),
