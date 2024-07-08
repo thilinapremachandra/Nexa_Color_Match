@@ -295,15 +295,25 @@ class RoomPageState extends State<RoomPage> {
                     crossAxisCount: 4,
                     itemCount: state.images.length,
                     itemBuilder: (context, index) {
-                      return Card(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: Image.network(
-                            state.images[index].augmentedImageUrl,
-                            fit: BoxFit.cover,
+                      return GestureDetector(
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => EnlargedImageDialog(
+                              imageUrl: state.images[index].augmentedImageUrl,
+                            ),
+                          );
+                        },
+                        child: Card(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: Image.network(
+                              state.images[index].augmentedImageUrl,
+                              fit: BoxFit.cover,
+                            ),
                           ),
                         ),
                       );
@@ -366,6 +376,30 @@ class RoomPageState extends State<RoomPage> {
         },
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
+      ),
+    );
+  }
+}
+
+class EnlargedImageDialog extends StatelessWidget {
+  final String imageUrl;
+
+  EnlargedImageDialog({required this.imageUrl});
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Image.network(imageUrl),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: Text('Close'),
+          ),
+        ],
       ),
     );
   }
