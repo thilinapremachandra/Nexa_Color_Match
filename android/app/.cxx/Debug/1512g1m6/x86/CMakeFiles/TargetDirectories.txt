@@ -1,3 +1,0 @@
-F:/Projects/Flutter/color/colornestle/android/app/.cxx/Debug/1512g1m6/x86/CMakeFiles/OpenCV_ffi.dir
-F:/Projects/Flutter/color/colornestle/android/app/.cxx/Debug/1512g1m6/x86/CMakeFiles/edit_cache.dir
-F:/Projects/Flutter/color/colornestle/android/app/.cxx/Debug/1512g1m6/x86/CMakeFiles/rebuild_cache.dir
