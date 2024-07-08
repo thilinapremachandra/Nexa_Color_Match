@@ -40,7 +40,7 @@ This project aims to measure the complexity of a room using three methods: area-
 4. **Run the Program:**
    
      ```sh
-     python main.py
+     python RoomComplexityModel.py
      ```
 
 ### Usage
