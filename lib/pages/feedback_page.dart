@@ -1,15 +1,12 @@
-
 import 'dart:io';
 import 'package:colornestle/widgets/appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-
-import '../config.dart';
+import 'package:image/image.dart' as img;
+import '../utils/config.dart';
 import '../widgets/sidebar_drawer.dart';
-
-
 
 class FeedbackPage extends StatefulWidget {
   const FeedbackPage({
@@ -17,24 +14,13 @@ class FeedbackPage extends StatefulWidget {
   });
 
   @override
-  State<FeedbackPage> createState() => _MyHomePageState();
+  State<FeedbackPage> createState() => _FeedbackPageState();
 }
 
-class _MyHomePageState extends State<FeedbackPage> {
-
+class _FeedbackPageState extends State<FeedbackPage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  String name = "Defultuser";
+  String name = "Defaultuser";
   String email = "user@gmail.com";
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final args =
-        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-    name = args?['name'] ?? "null";
-    email = args?['email'] ?? "charithabimsara@gmail.com";
-  }
-
   XFile? _imageFile;
   final picker = ImagePicker();
   final _textEditingController = TextEditingController();
@@ -42,37 +28,109 @@ class _MyHomePageState extends State<FeedbackPage> {
   String answer2 = "Yes, I have already applied them.";
   String answer3 = "Very helpful.";
   String answer4 = "Good";
-  String question1 =
-      "How satisfied are you with the color suggestions provided by the app?";
-  String question2 =
-      "Do you really apply these to your walls or planning to do so?";
-  String question3 =
-      "How helpful did you find the app in choosing colors based on room texture?";
+
+  String question1 = "How satisfied are you with the color suggestions provided by the app?";
+  String question2 = "Do you really apply these to your walls or planning to do so?";
+  String question3 = "How helpful did you find the app in choosing colors based on room texture?";
   String question4 = "How is the overall color suggestion of the app?";
 
-  // String? get userEmail => null;
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    name = args?['name'] ?? "null";
+    email = args?['email'] ?? "charithabimsara@gmail.com";
+  }
 
   Future<void> _pickImage(ImageSource source) async {
     try {
       final pickedFile = await picker.pickImage(source: source);
-      setState(() {
-        _imageFile = pickedFile;
-      });
+      if (pickedFile != null) {
+        File imageFile = File(pickedFile.path);
+        img.Image? image = img.decodeImage(imageFile.readAsBytesSync());
+
+        // Resize the image if necessary
+        if (image != null) {
+          img.Image resizedImage = img.copyResize(image, width: 800); // Resize to a width of 800 pixels
+          File resizedFile = File(pickedFile.path)..writeAsBytesSync(img.encodeJpg(resizedImage));
+
+          if (!mounted) return; // Check if the widget is still mounted
+
+          setState(() {
+            _imageFile = XFile(resizedFile.path);
+          });
+        }
+      }
+      
+      if (!mounted) return; // Check if the widget is still mounted
+      Navigator.pop(context); // Close the bottom sheet after picking an image
     } catch (e) {
-      print('Error picking image: $e');
+      Fluttertoast.showToast(
+        msg: 'Error picking image: $e',
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
     }
   }
 
-//file check
+  void _showBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Column(
+                    children: [
+                      GestureDetector(
+                        onTap: () => _pickImage(ImageSource.gallery),
+                        child: CircleAvatar(
+                          radius: 30,
+                          backgroundColor: Colors.grey[200],
+                          child: Icon(Icons.photo_library, size: 30, color: Colors.black),
+                        ),
+                      ),
+                      SizedBox(height: 8),
+                      Text('Gallery', style: TextStyle(color: Colors.black)),
+                    ],
+                  ),
+                  Column(
+                    children: [
+                      GestureDetector(
+                        onTap: () => _pickImage(ImageSource.camera),
+                        child: CircleAvatar(
+                          radius: 30,
+                          backgroundColor: Colors.grey[200],
+                          child: Icon(Icons.photo_camera, size: 30, color: Colors.black),
+                        ),
+                      ),
+                      SizedBox(height: 8),
+                      Text('Camera', style: TextStyle(color: Colors.black)),
+                    ],
+                  ),
+                ],
+              ),
+              
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _uploadImageAndData() async {
     var url = Uri.parse('${Config.baseUrl}/file/uploadFileComment');
-
     try {
-      // Create a multipart request
       var request = http.MultipartRequest('POST', url);
 
       if (_imageFile != null) {
-        // Add image file to multipart request
         var fileStream = http.ByteStream(File(_imageFile!.path).openRead());
         var length = await File(_imageFile!.path).length();
         var multipartFile = http.MultipartFile(
@@ -84,34 +142,40 @@ class _MyHomePageState extends State<FeedbackPage> {
         request.files.add(multipartFile);
       }
 
-      // Add other fields as needed (e.g., user input)
-
       request.fields['question1'] = answer1;
       request.fields['question2'] = answer2;
       request.fields['question3'] = answer3;
       request.fields['question4'] = answer4;
       request.fields['userInput'] = _textEditingController.text;
-      request.fields['email'] = email!;
-      // Send multipart request
+      request.fields['email'] = email;
+
       var response = await request.send();
 
-      // Handle response
       if (response.statusCode == 200) {
-        print('Data uploaded successfully');
         Fluttertoast.showToast(
           msg: 'Thank you for your feedback.',
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.BOTTOM,
           backgroundColor: Colors.green,
-          textColor: Color.fromARGB(255, 4, 4, 4),
+          textColor: Colors.white,
         );
-        // Clear fields or show success message as needed
       } else {
-        print('Failed to upload data');
-        // Handle other status codes or errors
+        Fluttertoast.showToast(
+          msg: 'Failed to upload data. Please try again.',
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+        );
       }
     } catch (e) {
-      print('Error uploading data: $e');
+      Fluttertoast.showToast(
+        msg: 'Error uploading data: $e',
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
     }
   }
 
@@ -121,14 +185,51 @@ class _MyHomePageState extends State<FeedbackPage> {
     super.dispose();
   }
 
+  Widget buildDropDownSelector({
+    required String title,
+    required String currentValue,
+    required List<String> options,
+    required ValueChanged<String?> onChanged,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 10.0),
+        DropdownButtonFormField<String>(
+          value: currentValue,
+          decoration: InputDecoration(
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
+            filled: false,
+          ),
+          items: options.map<DropdownMenuItem<String>>((String value) {
+            return DropdownMenuItem<String>(
+              value: value,
+              child: Text(value),
+            );
+          }).toList(),
+          onChanged: onChanged,
+        ),
+        const SizedBox(height: 20.0),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
-     appBar: TransparentAppBarPage.getAppBar('Feedback', _scaffoldKey),
-     drawer: SidebarDrawer(name: name, email: email),
+      appBar: TransparentAppBarPage.getAppBar('Feedback', _scaffoldKey),
+      drawer: SidebarDrawer(name: name, email: email),
       body: Container(
-        padding: EdgeInsets.all(20),
+        padding: EdgeInsets.all(16),
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [
@@ -143,211 +244,102 @@ class _MyHomePageState extends State<FeedbackPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              SizedBox(
-                height: 60.00,
-                child: Text(
-                  question1,
-                  style: TextStyle(
-                      fontSize: 18.0, color: Color.fromARGB(255, 0, 0, 0)),
-                ),
+              buildDropDownSelector(
+                title: question1,
+                currentValue: answer1,
+                options: ['Satisfied 😀', 'Neutral😐', 'Dissatisfied☹️'],
+                onChanged: (newValue) {
+                  setState(() {
+                    answer1 = newValue!;
+                  });
+                },
               ),
-
-              SizedBox(
-                width: 250.00,
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: DropdownButtonFormField<String>(
-                    value: answer1,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      filled: true,
-                      fillColor: Colors.grey[200],
-                    ),
-                    items: ['Satisfied 😀', 'Neutral😐', 'Dissatisfied☹️']
-                        .map((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(
-                          value,
-                          style: TextStyle(),
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: (newValue) {
-                      setState(() {
-                        answer1 = newValue!;
-                      });
-                    },
-                  ),
-                ),
+              buildDropDownSelector(
+                title: question2,
+                currentValue: answer2,
+                options: [
+                  'Yes, I have already applied them.',
+                  'Yes, I plan to apply them soon',
+                  'Maybe, I\'m still deciding.',
+                  'No, I do not intend to apply them.'
+                ],
+                onChanged: (newValue) {
+                  setState(() {
+                    answer2 = newValue!;
+                  });
+                },
               ),
-              Text(
-                question2,
-                style: TextStyle(
-                    fontSize: 18.0, color: const Color.fromARGB(255, 0, 0, 0)),
-                textAlign: TextAlign.left,
+              buildDropDownSelector(
+                title: question3,
+                currentValue: answer3,
+                options: [
+                  'Very helpful.',
+                  'Moderately helpful.',
+                  'Slightly helpful.',
+                  'Not helpful at all.'
+                ],
+                onChanged: (newValue) {
+                  setState(() {
+                    answer3 = newValue!;
+                  });
+                },
               ),
-              SizedBox(
-                width: 300.00,
-                child: Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: DropdownButtonFormField<String>(
-                    value: answer2,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      filled: true,
-                      fillColor: Colors.grey[200],
-                    ),
-                    items: [
-                      'Yes, I have already applied them.',
-                      'Yes, I plan to apply them soon',
-                      'Maybe, I\'m still deciding.',
-                      'No, I do not intend to apply them.'
-                    ].map((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(
-                          value,
-                          style: TextStyle(),
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: (newValue) {
-                      setState(() {
-                        answer2 = newValue!;
-                      });
-                    },
-                  ),
-                ),
+              buildDropDownSelector(
+                title: question4,
+                currentValue: answer4,
+                options: ['Good', 'Average', 'Poor'],
+                onChanged: (newValue) {
+                  setState(() {
+                    answer4 = newValue!;
+                  });
+                },
               ),
-              // SizedBox(height: 20),
-              Text(
-                question3,
-                style: TextStyle(
-                    fontSize: 18.0, color: const Color.fromARGB(255, 0, 0, 0)),
-              ),
-
-              SizedBox(
-                width: 200.00,
-                child: Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: DropdownButtonFormField<String>(
-                    value: answer3,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      filled: true,
-                      fillColor: Colors.grey[200],
-                    ),
-                    items: [
-                      'Very helpful.',
-                      'Moderately helpful.',
-                      'Slightly helpful.',
-                      'Not helpful at all.'
-                    ].map((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(
-                          value,
-                          style: TextStyle(),
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: (newValue) {
-                      setState(() {
-                        answer3 = newValue!;
-                      });
-                    },
-                  ),
-                ),
-              ),
-              // SizedBox(height: 20),
-              Text(
-                question4,
-                style: TextStyle(
-                    fontSize: 18.0, color: const Color.fromARGB(255, 0, 0, 0)),
-              ),
-
-              SizedBox(
-                width: 200.00,
-                child: Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: DropdownButtonFormField<String>(
-                    value: answer4,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      filled: true,
-                      fillColor: Colors.grey[200],
-                    ),
-                    items: ['Good', 'Average', 'Poor'].map((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(
-                          value,
-                          style: TextStyle(),
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: (newValue) {
-                      setState(() {
-                        answer4 = newValue!;
-                      });
-                    },
-                  ),
-                ),
-              ),
-
-              //image
               Divider(
-                height: 20, // The height of the divider
-                color: Colors.grey, // The color of the divider
-                thickness: 1, // The thickness of the divider line
-                indent: 1, // The left padding (indent) of the divider
-                endIndent: 10, // The right padding (endIndent) of the divider
+                height: 20,
+                color: Colors.grey,
+                thickness: 1,
+                indent: 1,
+                endIndent: 10,
               ),
               _imageFile == null
                   ? Text(
                       'No image selected.',
-                      style:
-                          TextStyle(color: const Color.fromARGB(255, 0, 0, 0)),
+                      style: TextStyle(color: Colors.black),
                     )
                   : Image.file(
                       File(_imageFile!.path),
-                      width: 60,
-                      height: 60,
+                      width: 319,
+                      height: 200,
                       fit: BoxFit.cover,
                     ),
               SizedBox(height: 20),
               TextField(
                 controller: _textEditingController,
                 decoration: InputDecoration(
-                  hintText:
-                      'We highly appreciate your suggestions. Feel free to write anything.',
-                  hintStyle:
-                      TextStyle(color: const Color.fromARGB(179, 0, 0, 0)),
+                  hintText: 'We highly appreciate your suggestions. Feel free to write anything.',
+                  hintStyle: TextStyle(color: Colors.black54),
                   filled: true,
-                  fillColor: const Color.fromARGB(60, 24, 23, 23),
+                  fillColor: Colors.grey[200],
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                     borderSide: BorderSide.none,
                   ),
                 ),
-                style: TextStyle(color: const Color.fromARGB(255, 0, 0, 0)),
+                style: TextStyle(color: Colors.black),
                 maxLines: 3,
               ),
               SizedBox(height: 20),
-
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
                   ElevatedButton.icon(
-                    onPressed: () => _pickImage(ImageSource.gallery),
+                    onPressed: () => _showBottomSheet(context),
                     icon: Icon(Icons.photo_library),
                     label: Text('Select Image'),
                     style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      backgroundColor: Colors.black,
+                      foregroundColor: Colors.black,
+                      backgroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
-                        
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
@@ -357,8 +349,8 @@ class _MyHomePageState extends State<FeedbackPage> {
                     icon: Icon(Icons.upload_file),
                     label: Text('Submit Feedback'),
                     style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.black,
-                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.red,
+                      backgroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),

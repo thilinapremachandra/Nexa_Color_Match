@@ -3,14 +3,15 @@ import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 
-// Import the custom popup
-import 'package:colornestle/config.dart';
+import 'package:colornestle/utils/config.dart';
 import 'package:lottie/lottie.dart';
 
 import '../../widgets/button.dart';
 import '../../widgets/custom_popup.dart';
+import '../../utils/interior_image_api.dart';
 
 class GenerateImage extends StatefulWidget {
   const GenerateImage({super.key});
@@ -22,23 +23,70 @@ class GenerateImage extends StatefulWidget {
 class GenerateImageState extends State<GenerateImage> {
   String name = "defaultName";
   String email = "defaultEmail@example.com";
-  int imageid = 0;
+  int? imageid;
 
   List<Color> _colors = [];
   bool _isSaved = false;
   bool _hasRated = false;
   int? _selectedColorIndex;
   double _rating = 0.0;
+  
+
+  // Predefined color categories with their RGB values
+  final Map<String, List<int>> colorCategories = {
+    'red': [255, 0, 0],
+    'green': [0, 255, 0],
+    'blue': [0, 0, 255],
+    'yellow': [255, 255, 0],
+    'pink': [255, 192, 203],
+    'purple': [128, 0, 128],
+    'magenta': [255, 0, 255],
+    'grey': [128, 128, 128],
+    'white': [255, 255, 255],
+    'black': [0, 0, 0],
+    'brown': [165, 42, 42],
+    'orange': [255, 165, 0],
+    'turquoise': [64, 224, 208],
+    'teal': [0, 128, 128],
+    'lavender': [230, 230, 250],
+    'navy': [0, 0, 128],
+    'beige': [245, 245, 220],
+    'coral': [255, 127, 80],
+    'mint': [62, 180, 137],
+    'peach': [255, 229, 180],
+    'gold': [255, 215, 0],
+    'silver': [192, 192, 192],
+  };
 
   @override
   void initState() {
     super.initState();
     _colors = getRandomColors();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final Map<String, dynamic>? args =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      if (args != null) {
+        name = args['name'] ?? "defaultName";
+        email = args['email'] ?? "defaultEmail@example.com";
+        //print('Arguments received: name=$name, email=$email');
+        _fetchImageId();
+      }
+    });
+  }
+
+  Future<void> _fetchImageId() async {
+    try {
+      imageid = (await getImageIdByEmail(email));
+      //print('Fetched image ID: $imageid');
+      setState(() {});
+    } catch (e) {
+      //print('Failed to fetch image ID: $e');
+    }
   }
 
   List<Color> getRandomColors() {
     return List.generate(
-      6,
+    4,
       (index) => Color.fromARGB(
         255,
         Random().nextInt(256),
@@ -52,79 +100,155 @@ class GenerateImageState extends State<GenerateImage> {
     return '#${color.value.toRadixString(16).padLeft(6, '0').substring(2).toUpperCase()}';
   }
 
-  Future<void> _save() async {
-    print("Email before API call: $email"); // Debugging line
-
-    if (_isSaved) {
-      _showAlreadySavedMessage();
-      return;
-    }
-
-    if (!_hasRated) {
-      _showRatingDialog();
-      return;
-    }
-
-    await _updateColorPallet();
-    await _updateColorPalletColorCode();
-
-    setState(() {
-      _isSaved = true;
-    });
+  // Function to convert hex code to RGB values
+  Map<String, int> hexToRgb(String hex) {
+    hex = hex.replaceAll('#', '');
+    if (hex.length != 6) throw ArgumentError('Invalid hex color');
+    return {
+      'r': int.parse(hex.substring(0, 2), radix: 16),
+      'g': int.parse(hex.substring(2, 4), radix: 16),
+      'b': int.parse(hex.substring(4, 6), radix: 16),
+    };
   }
 
-  Future<void> _updateColorPallet() async {
-    final url =
-        Uri.parse('${Config.baseUrl}/api/colorpallet/updateColorPallet');
-    final headers = {"Content-Type": "application/json"};
-    final body = jsonEncode({
-      'imageColorPalletId': imageid.toString(),
-      'email': email,
-      'rating': _rating.toString(),
-    });
-
-    try {
-      final response = await http.post(url, headers: headers, body: body);
-      print(
-          "Response from updateColorPallet: ${response.body}"); // Debugging line
-      if (response.statusCode != 200) {
-        // Handle failure
-      }
-    } catch (e) {
-      // Handle error
-    }
+  // Function to calculate the Euclidean distance between two colors
+  double calculateDistance(List<int> color1, Map<String, int> color2) {
+    return sqrt(pow(color1[0] - color2['r']!, 2) +
+        pow(color1[1] - color2['g']!, 2) +
+        pow(color1[2] - color2['b']!, 2));
   }
 
-  Future<void> _updateColorPalletColorCode() async {
-    final url =
-        Uri.parse('${Config.baseUrl}/api/colorCode/updateColorPalletColorCode');
-    final headers = {"Content-Type": "application/json"};
-    final body = jsonEncode({
-      'email': email,
-      // 'colorPalletColorId': '1',
-      'colorCode': _colors.map((color) => _colorToHex(color)).join(','),
-      'selectedColor': _colorToHex(_colors[_selectedColorIndex!]),
-      'colorGroup': 'yellow',
-      'imageColorPalletId': imageid.toString(),
+  // Function to categorize the color
+  String categorizeColor(Map<String, int> rgb) {
+    double minDistance = double.infinity;
+    String closestCategory = 'Unknown';
+
+    colorCategories.forEach((category, color) {
+      double distance = calculateDistance(color, rgb);
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestCategory = category;
+      }
     });
 
+    return closestCategory;
+  }
+
+  String _categorizeHexColor(String hexColor) {
+  try {
+    final rgb = hexToRgb(hexColor);
+    return categorizeColor(rgb);
+  } catch (e) {
+    return 'Invalid color code';
+  }
+}
+
+Future<void> _save() async {
+  if (_isSaved) {
+    _showAlreadySavedMessage();
+    return;
+  }
+
+  if (!_hasRated) {
+    _showRatingDialog();
+    return;
+  }
+
+  if (imageid == null) {
+    _showSaveFailMessage();
+    return;
+  }
+
+  String selectedColorHex = _colorToHex(_colors[_selectedColorIndex!]);
+  String colorGroup = _categorizeHexColor(selectedColorHex); // Correctly assign the color group
+
+  await createColorPallet(
+    email,
+    imageid!,
+    selectedColorHex,
+    colorGroup,
+    _rating.toString(),
+    _colors.map((color) => _colorToHex(color)).toList(),
+  );
+
+  setState(() {
+    _isSaved = true;
+  });
+
+  _showSuccessMessage();
+}
+
+  Future<void> createColorPallet(
+    String email,
+    int interiorImageId,
+    String selectedColor,
+    String colorGroup,
+    String rating,
+    List<String> colorCodes,
+  ) async {
+    final url = Uri.parse('${Config.baseUrl}/api/color_pallet_generate');
+
+    // Construct query parameters
+    final queryParameters = {
+      'email': email,
+      'interiorImageId': interiorImageId.toString(),
+      'selectedColor': selectedColor,
+      'colorGroup': colorGroup,
+      'rating': rating,
+    };
+
+    // Append query parameters to URL
+    final uri = url.replace(queryParameters: queryParameters);
+
+    final headers = {'Content-Type': 'application/json'};
+    final body = jsonEncode(colorCodes);
+
     try {
-      final response = await http.post(url, headers: headers, body: body);
-      print(
-          "Response from updateColorPalletColorCode: ${response.body}"); // Debugging line
-      if (response.statusCode != 200) {
-        // Handle failure
+      final response = await http.post(uri, headers: headers, body: body);
+
+      if (response.statusCode == 200) {
+        //print('Generation complete');
+      } else {
+        //print('Failed to generate color pallet: ${response.body}');
       }
     } catch (e) {
-      // Handle error
+      //print('Error occurred while processing: $e');
     }
   }
 
   void _showAlreadySavedMessage() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('This palette has already been saved.'),
-      ),
+    Fluttertoast.showToast(
+      msg: "This item is already saved.",
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      timeInSecForIosWeb: 1,
+      backgroundColor: Colors.blue,
+      textColor: Colors.white,
+      fontSize: 16.0,
+    );
+  }
+
+  void _showSuccessMessage() {
+    Fluttertoast.showToast(
+      msg: "Item saved successfully.",
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      timeInSecForIosWeb: 1,
+      backgroundColor: Colors.green,
+      textColor: Colors.white,
+      fontSize: 16.0,
+    );
+  }
+
+  void _showSaveFailMessage() {
+    Fluttertoast.showToast(
+      msg: "Failed to save the item. Please try again.",
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      timeInSecForIosWeb: 1,
+      backgroundColor: Colors.red,
+      textColor: Colors.white,
+      fontSize: 16.0,
     );
   }
 
@@ -142,14 +266,6 @@ class GenerateImageState extends State<GenerateImage> {
       });
       _save();
     }
-  }
-
-  void _regenerateColors() {
-    setState(() {
-      _colors = getRandomColors();
-      _selectedColorIndex = null;
-      _isSaved = false;
-    });
   }
 
   void _showColorDetailsBottomSheet() {
@@ -183,9 +299,9 @@ class GenerateImageState extends State<GenerateImage> {
                 SizedBox(height: 10),
                 Text(
                   _colorToHex(_colors[_selectedColorIndex!]),
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.red,),
                 ),
-                SizedBox(height: 30),
+                SizedBox(height: 40),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -202,19 +318,13 @@ class GenerateImageState extends State<GenerateImage> {
                         text: 'Visualize',
                         height: 40,
                         width: 150,
-                        onTap: () async {
-                          await Navigator.pushNamed(
-                            context,
-                            '/panoramicview',
-                            arguments: {
-                              'name': name,
-                              'email': email,
-                              'imageid': imageid
-                            },
-                          );
+                        onTap: () {
+                          Navigator.pop(context);
+                          Navigator.pushNamed(context, '/panoramicview');
                         },
                       ),
                     ),
+                    
                   ],
                 ),
               ],
@@ -252,22 +362,15 @@ class GenerateImageState extends State<GenerateImage> {
 
   @override
   Widget build(BuildContext context) {
-    final Map<String, dynamic>? args =
-        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-    if (args != null) {
-      name = args['name'] ?? "defaultName";
-      email = args['email'] ?? "defaultEmail@example.com";
-      imageid = int.tryParse(args['imageid']?.toString() ?? '0') ?? 0;
-    }
-
     return Scaffold(
+      backgroundColor: Colors.white,
       body: GridView.builder(
-        padding: EdgeInsets.all(20),
+        padding: EdgeInsets.all(10),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          crossAxisSpacing: 10,
-          mainAxisSpacing: 10,
-          childAspectRatio: 0.75,
+          crossAxisSpacing: 5,
+          mainAxisSpacing: 5,
+          childAspectRatio: 0.85,
         ),
         itemCount: _colors.length,
         itemBuilder: (context, index) {
@@ -283,10 +386,10 @@ class GenerateImageState extends State<GenerateImage> {
                 Column(
                   children: [
                     Container(
-                      padding: EdgeInsets.all(10),
+                      padding: EdgeInsets.all(5),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(15),
+                        borderRadius: BorderRadius.circular(10),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.grey.withOpacity(0.5),
@@ -303,7 +406,7 @@ class GenerateImageState extends State<GenerateImage> {
                             height: 150,
                             decoration: BoxDecoration(
                               color: _colors[index],
-                              borderRadius: BorderRadius.circular(15),
+                              borderRadius: BorderRadius.circular(10),
                             ),
                           ),
                           SizedBox(height: 10),
@@ -321,7 +424,7 @@ class GenerateImageState extends State<GenerateImage> {
                             width: double.maxFinite,
                             alignment: Alignment.center,
                             decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(15),
+                              borderRadius: BorderRadius.circular(10),
                               border:
                                   Border.all(width: 1, color: Colors.black45),
                               color: _selectedColorIndex == index
@@ -347,7 +450,7 @@ class GenerateImageState extends State<GenerateImage> {
         height: 30,
         shape: CircularNotchedRectangle(),
         notchMargin: 5.0,
-        color: Colors.white,
+        
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: ClipRRect(

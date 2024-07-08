@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-import '../config.dart';
+import '../utils/config.dart';
 import '../widgets/sidebar_drawer.dart';
 
 class HistoryPage extends StatefulWidget {
@@ -32,10 +32,6 @@ class HistoryPageState extends State<HistoryPage> {
   List<Map<String, dynamic>> _historyData = [];
 
   Future<void> _fetchHistory() async {
-    if (email == null) {
-      return;
-    }
-
     final response = await http.get(
       Uri.parse('${Config.baseUrl}/api/v1/history/$email'),
     );
@@ -134,10 +130,6 @@ class HistoryPageState extends State<HistoryPage> {
   }
 
   Future<void> _clearHistory() async {
-    if (email == null) {
-      return;
-    }
-
     final response = await http.delete(
       Uri.parse('${Config.baseUrl}/api/v1/history/$email'),
     );

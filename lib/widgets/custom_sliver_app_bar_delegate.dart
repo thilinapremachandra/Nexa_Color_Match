@@ -31,7 +31,7 @@ class CustomSliverAppBarDelegate extends SliverPersistentHeaderDelegate {
         ),
 
         Container(
-          margin: const EdgeInsets.only(top: 70),
+          
           child: Column(
             children: [
               Text(
@@ -64,7 +64,7 @@ class CustomSliverAppBarDelegate extends SliverPersistentHeaderDelegate {
   double get maxExtent => expandedHeight;
 
   @override
-  double get minExtent => kToolbarHeight+90;
+  double get minExtent => kToolbarHeight+20;
 
   @override
   bool shouldRebuild(SliverPersistentHeaderDelegate oldDelegate) => true;

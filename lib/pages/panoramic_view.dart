@@ -41,6 +41,7 @@ class _PanoramicImageViewerState extends State<PanoramicImageViewer> {
       body: Stack(
         children: [
           Panorama(
+            animSpeed: 2,
             child: Image.asset(imageUrl),
           ),
           if (showAnimation)

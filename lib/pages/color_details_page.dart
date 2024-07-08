@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
 class ColorDetailsPage extends StatefulWidget {
   const ColorDetailsPage({super.key});
@@ -9,7 +8,6 @@ class ColorDetailsPage extends StatefulWidget {
 }
 
 class ColorDetailsPageState extends State<ColorDetailsPage> {
-  double _rating = 0.0;
 
   @override
   Widget build(BuildContext context) {

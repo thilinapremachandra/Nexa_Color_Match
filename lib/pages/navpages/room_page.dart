@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:shimmer/shimmer.dart';
-import '../../../cubits/room_cubit.dart';
+import '../../state/room_cubit.dart';
 import '../../../widgets/custom_sliver_app_bar_delegate.dart';
 import '../../../widgets/responsive_button.dart';
 
@@ -116,7 +116,7 @@ class RoomPageState extends State<RoomPage> {
           return <Widget>[
             SliverPersistentHeader(
               delegate: CustomSliverAppBarDelegate(
-                expandedHeight: 190,
+                expandedHeight: 100,
               ),
               pinned: true,
             ),

@@ -1,9 +1,12 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:logger/logger.dart';
 import 'package:http/http.dart' as http;
 
-import 'package:colornestle/config.dart';
+import 'package:colornestle/utils/config.dart';
+
+import '../widgets/button.dart';
 
 // Create a logger instance
 final logger = Logger();
@@ -33,7 +36,6 @@ class UserPreferenceFormState extends State<UserPreferenceForm> {
   bool _richColorChecked = false;
   String _colorToneTheme = 'Neutral';
   String _preferredAmbiance = 'Cozy and Warm';
-  String _gender = 'Male';
   String _ageGroup = '20-40';
 
   // Define the list of allowed colors
@@ -70,7 +72,6 @@ class UserPreferenceFormState extends State<UserPreferenceForm> {
       _favoriteColors.clear();
       _colorToneTheme = 'Neutral';
       _preferredAmbiance = 'Cozy and Warm';
-      _gender = 'Male';
       _ageGroup = '20-40';
     });
   }
@@ -86,297 +87,251 @@ class UserPreferenceFormState extends State<UserPreferenceForm> {
     }
 
     return Scaffold(
-      appBar: AppBar(),
+     
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: SafeArea(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Center(
-                  child: Container(
-                    height: 70,
-                    width: 70,
+            child: Center(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  
+                    
+                  Container(
+                    padding: EdgeInsets.all(30.0),
                     decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(100),
-                        color: Colors.greenAccent),
-                    child: const Icon(
-                      Icons.account_circle_outlined,
-                      size: 50,
-                    ),
-                  ),
-                ),
-                Center(
-                  child: const SizedBox(
-                    height: 100,
-                    child: Text(
-                      "Who are you ?",
-                      style: TextStyle(
-                        color: Color.fromARGB(255, 77, 75, 75),
-                        fontFamily: "inter",
-                        fontWeight: FontWeight.normal,
-                        fontSize: 18.0,
-                      ),
-                    ),
-                  ),
-                ),
-                Container(
-                  padding: EdgeInsets.all(30.0),
-                  decoration: BoxDecoration(
-                    color: Color.fromARGB(255, 255, 255, 255),
-                    borderRadius: BorderRadius.circular(18),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.3), // Shadow color
-                        blurRadius: 10, // Softness of the shadow
-                        spreadRadius: 2, // Spread radius
-                        offset: const Offset(0, 4), // Shadow position
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.of(context)
-                                  .pushNamed('/colormatcher', arguments: {
-                                'imageid': imageid,
-                                'name': name,
-                                'email': email,
-                              });
-                            },
-                            child: Container(
-                              height: 40,
-                              width: 100,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(20),
-                                color: Colors.green,
-                              ),
-                              child: const Center(
-                                child: Text(
-                                  'Skip',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 20,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      buildOptionSelector(
-                        title: 'Budget',
-                        options: ['  Low  ', '  Moderate  ', '  High  '],
-                        currentValue: _budget,
-                        onChanged: (value) {
-                          setState(() {
-                            _budget = value!;
-                          });
-                        },
-                      ),
-                      buildFavoriteColorSelector(context),
-                      buildRadioSelector(
-                        title: 'Number of Members',
-                        currentValue: _numberOfMembers,
-                        options: [
-                          '1-2 members',
-                          '2-6 members',
-                          'Above 6 members'
-                        ],
-                        onChanged: (value) {
-                          setState(() {
-                            _numberOfMembers = value!;
-                          });
-                        },
-                      ),
-                      buildOptionSelector(
-                        title: 'Climate',
-                        options: ['Wet', 'Intermediate', 'Dry'],
-                        currentValue: _climate,
-                        onChanged: (value) {
-                          setState(() {
-                            _climate = value!;
-                          });
-                        },
-                      ),
-                      buildOptionSelector(
-                        title: 'Lifestyle',
-                        options: ['Homies', 'Job-runners', 'Party-lovers'],
-                        currentValue: _lifestyle,
-                        onChanged: (value) {
-                          setState(() {
-                            _lifestyle = value!;
-                          });
-                        },
-                      ),
-                      buildDropDownSelector(
-                        title: 'Architectural Style',
-                        currentValue: _architecturalStyle,
-                        options: ['Modern', 'Traditional', 'Minimalist'],
-                        onChanged: (value) {
-                          setState(() {
-                            _architecturalStyle = value!;
-                          });
-                        },
-                      ),
-                      buildOptionSelector(
-                        title: 'Color Tone/Theme',
-                        options: [
-                          'Neutral',
-                          'Cool Tones',
-                          'Warm Tones',
-                          'Mixed/Balanced',
-                          'No Specific Color Scheme'
-                        ],
-                        currentValue: _colorToneTheme,
-                        onChanged: (value) {
-                          setState(() {
-                            _colorToneTheme = value!;
-                          });
-                        },
-                      ),
-                      buildOptionSelector(
-                        title: 'Preferred Ambiance',
-                        options: [
-                          'Cozy and Warm',
-                          'Bright and Airy',
-                          'Elegant and Sophisticated',
-                          'Modern and Minimalist',
-                          'Vibrant and Energetic'
-                        ],
-                        currentValue: _preferredAmbiance,
-                        onChanged: (value) {
-                          setState(() {
-                            _preferredAmbiance = value!;
-                          });
-                        },
-                      ),
-                      buildDropDownSelector(
-                        title: 'Gender',
-                        currentValue: _gender,
-                        options: ['Male', 'Female', 'Prefer not to say'],
-                        onChanged: (value) {
-                          setState(() {
-                            _gender = value!;
-                          });
-                        },
-                      ),
-                      buildDropDownSelector(
-                        title: 'Age Group',
-                        currentValue: _ageGroup,
-                        options: ['Below 20', '20-40', '40-50', 'Above 50'],
-                        onChanged: (value) {
-                          setState(() {
-                            _ageGroup = value!;
-                          });
-                        },
-                      ),
-                      buildCheckBox(
-                        title: 'Light Condition',
-                        values: {
-                          'Natural Light': _naturalLightChecked,
-                          'Rich Color': _richColorChecked,
-                        },
-                        onChanged: (value) {
-                          setState(() {
-                            _naturalLightChecked = value['Natural Light']!;
-                            _richColorChecked = value['Rich Color']!;
-                          });
-                        },
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: <Widget>[
-                          Text(
-                            'Photosensitivity:',
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontSize: 25,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Switch(
-                            value: _photosensitivity,
-                            onChanged: (value) {
-                              setState(() {
-                                _photosensitivity = value;
-                              });
-                            },
-                          ),
-                        ],
-                      ),
-                      SizedBox(
-                        height: 30,
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          GestureDetector(
-                            onTap: () {
-                              // Handle reset
-                              resetSelections();
-                            },
-                            child: Container(
-                              height: 40,
-                              width: 100,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(20),
-                                color: Colors.grey,
-                              ),
-                              child: const Center(
-                                child: Text(
-                                  'Reset',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 20,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(
-                  height: 30,
-                ),
-                const SizedBox(
-                  height: 20,
-                ),
-                GestureDetector(
-                  onTap: () {
-                    // Handle form submission
-                    sendFormData();
-                  },
-                  child: Center(
-                    child: Container(
-                      height: 60,
-                      width: 300,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        color: Colors.greenAccent,
-                      ),
-                      child: const Center(
-                        child: Text(
-                          'Submit',
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 20,
-                          ),
+                      color: Color.fromARGB(255, 255, 255, 255),
+                      borderRadius: BorderRadius.circular(18),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.3), // Shadow color
+                          blurRadius: 10, // Softness of the shadow
+                          spreadRadius: 2, // Spread radius
+                          offset: const Offset(0, 4), // Shadow position
                         ),
-                      ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.of(context)
+                                    .pushNamed('/colormatcher', arguments: {
+                                  'imageid': imageid,
+                                  'name': name,
+                                  'email': email,
+                                });
+                              },
+                              child: Container(
+                                height: 40,
+                                width: 100,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20),
+                                  color: Colors.green,
+                                ),
+                                child: const Center(
+                                  child: Text(
+                                    'Skip',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 20,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        buildOptionSelector(
+                          title: 'Budget',
+                          options: ['  Low  ', '  Moderate  ', '  High  '],
+                          currentValue: _budget,
+                          onChanged: (value) {
+                            setState(() {
+                              _budget = value!;
+                            });
+                          },
+                        ),
+                        buildFavoriteColorSelector(context),
+                        buildRadioSelector(
+                          title: 'Number of Members',
+                          currentValue: _numberOfMembers,
+                          options: [
+                            '1-2 members',
+                            '2-6 members',
+                            'Above 6 members'
+                          ],
+                          onChanged: (value) {
+                            setState(() {
+                              _numberOfMembers = value!;
+                            });
+                          },
+                        ),
+                        buildOptionSelector(
+                          title: 'Climate',
+                          options: ['Wet', 'Intermediate', 'Dry'],
+                          currentValue: _climate,
+                          onChanged: (value) {
+                            setState(() {
+                              _climate = value!;
+                            });
+                          },
+                        ),
+                        buildOptionSelector(
+                          title: 'Lifestyle',
+                          options: ['Homies', 'Job-runners', 'Party-lovers'],
+                          currentValue: _lifestyle,
+                          onChanged: (value) {
+                            setState(() {
+                              _lifestyle = value!;
+                            });
+                          },
+                        ),
+                        buildDropDownSelector(
+                          title: 'Architectural Style',
+                          currentValue: _architecturalStyle,
+                          options: ['Modern', 'Traditional', 'Minimalist'],
+                          onChanged: (value) {
+                            setState(() {
+                              _architecturalStyle = value!;
+                            });
+                          },
+                        ),
+                        buildOptionSelector(
+                          title: 'Color Tone/Theme',
+                          options: [
+                            'Neutral',
+                            'Cool Tones',
+                            'Warm Tones',
+                            'Mixed/Balanced',
+                            'No Specific Color Scheme'
+                          ],
+                          currentValue: _colorToneTheme,
+                          onChanged: (value) {
+                            setState(() {
+                              _colorToneTheme = value!;
+                            });
+                          },
+                        ),
+                        buildOptionSelector(
+                          title: 'Preferred Ambiance',
+                          options: [
+                            'Cozy and Warm',
+                            'Bright and Airy',
+                            'Elegant and Sophisticated',
+                            'Modern and Minimalist',
+                            'Vibrant and Energetic'
+                          ],
+                          currentValue: _preferredAmbiance,
+                          onChanged: (value) {
+                            setState(() {
+                              _preferredAmbiance = value!;
+                            });
+                          },
+                        ),
+                        
+                        buildDropDownSelector(
+                          title: 'Age Group',
+                          currentValue: _ageGroup,
+                          options: ['Below 20', '20-40', '40-50', 'Above 50'],
+                          onChanged: (value) {
+                            setState(() {
+                              _ageGroup = value!;
+                            });
+                          },
+                        ),
+                        buildCheckBox(
+                          title: 'Light Condition',
+                          values: {
+                            'Natural Light': _naturalLightChecked,
+                            'Rich Color': _richColorChecked,
+                          },
+                          onChanged: (value) {
+                            setState(() {
+                              _naturalLightChecked = value['Natural Light']!;
+                              _richColorChecked = value['Rich Color']!;
+                            });
+                          },
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: <Widget>[
+                            Text(
+                              'Photosensitivity:',
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 25,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Switch(
+                              value: _photosensitivity,
+                              onChanged: (value) {
+                                setState(() {
+                                  _photosensitivity = value;
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                        SizedBox(
+                          height: 30,
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                // Handle reset
+                                resetSelections();
+                              },
+                              child: Container(
+                                height: 40,
+                                width: 100,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20),
+                                  color: Colors.grey,
+                                ),
+                                child: const Center(
+                                  child: Text(
+                                    'Reset',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 20,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(
+                    height: 30,
+                  ),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  Center(
+                    child: CustomButton(
+                      text: 'Submit Form',
+                      height: 50,
+                      onTap: sendFormData,
+                      width: 319,
+                    
+                      
+                    ),
+                  ),
+                  
+                ],
+              ),
             ),
           ),
         ),
@@ -599,80 +554,157 @@ class UserPreferenceFormState extends State<UserPreferenceForm> {
     return '#${hex.substring(2)}'; // Take the last 6 characters, which represent the RGB values
   }
 
+  // Future<void> sendFormData() async {
+  //   final apiUrl =
+  //       '${Config.baseUrl}/api/client-preferences'; // Replace with your API endpoint
+
+  //   // Create a map of the form data
+  //   final Map<String, dynamic> formData = {
+  //     'email': email,
+  //     'budget': _budget,
+  //     'favoriteColors': _favoriteColors.map(colorToHex).join(' '),
+  //     'climate': _climate,
+  //     'numberOfMembers': _numberOfMembers,
+  //     'lifestyle': _lifestyle,
+  //     'architecturalStyle': _architecturalStyle,
+  //     'photosensitivity': _photosensitivity,
+  //     'naturalLightChecked': _naturalLightChecked,
+  //     'richColorChecked': _richColorChecked,
+  //     'colorToneTheme': _colorToneTheme,
+  //     'preferredAmbiance': _preferredAmbiance,
+  //     'ageGroup': _ageGroup,
+  //   };
+
+  //   try {
+  //     final response = await http.post(
+  //       Uri.parse(apiUrl),
+  //       headers: {'Content-Type': 'application/json'},
+  //       body: jsonEncode(formData),
+  //     );
+
+  //     if (!mounted) return; // Check if the widget is still mounted
+
+  //     if (response.statusCode == 200) {
+  //       showSuccessDialog(context);
+  //     } else {
+  //       // Handle error
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(
+  //             content:
+  //                 Text('Failed to submit the form: ${response.statusCode}')),
+  //       );
+  //     }
+  //   } catch (error) {
+  //     // Handle error
+  //     logger.e('Error submitting form: $error');
+
+  //     if (!mounted) return; // Check if the widget is still mounted
+
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(content: Text('Error submitting the form: $error')),
+  //     );
+  //   }
+  // }
+
+
   Future<void> sendFormData() async {
-    final apiUrl =
-        '${Config.baseUrl}/api/client-preferences'; // Replace with your API endpoint
+  final apiUrl =
+      '${Config.baseUrl}/api/client-preferences'; // Replace with your API endpoint
 
-    // Create a map of the form data
-    final Map<String, dynamic> formData = {
-      'email': email,
-      'budget': _budget,
-      'favoriteColors': _favoriteColors.map(colorToHex).join(' '),
-      'climate': _climate,
-      'numberOfMembers': _numberOfMembers,
-      'lifestyle': _lifestyle,
-      'architecturalStyle': _architecturalStyle,
-      'photosensitivity': _photosensitivity,
-      'naturalLightChecked': _naturalLightChecked,
-      'richColorChecked': _richColorChecked,
-      'colorToneTheme': _colorToneTheme,
-      'preferredAmbiance': _preferredAmbiance,
-      'ageGroup': _ageGroup,
-    };
+  // Create a map of the form data
+  final Map<String, dynamic> formData = {
+    'email': email,
+    'budget': _budget,
+    'favoriteColors': _favoriteColors.map(colorToHex).join(' '),
+    'climate': _climate,
+    'numberOfMembers': _numberOfMembers,
+    'lifestyle': _lifestyle,
+    'architecturalStyle': _architecturalStyle,
+    'photosensitivity': _photosensitivity,
+    'naturalLightChecked': _naturalLightChecked,
+    'richColorChecked': _richColorChecked,
+    'colorToneTheme': _colorToneTheme,
+    'preferredAmbiance': _preferredAmbiance,
+    'ageGroup': _ageGroup,
+  };
 
-    try {
-      final response = await http.post(
-        Uri.parse(apiUrl),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(formData),
+  try {
+    final response = await http.post(
+      Uri.parse(apiUrl),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(formData),
+    );
+
+    if (!mounted) return; // Check if the widget is still mounted
+
+    if (response.statusCode == 200) {
+      Fluttertoast.showToast(
+        msg: "Form data sent successfully!",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.green,
+        textColor: Colors.white,
+        fontSize: 16.0,
       );
-
-      if (!mounted) return; // Check if the widget is still mounted
-
-      if (response.statusCode == 200) {
-        showSuccessDialog(context);
-      } else {
-        // Handle error
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content:
-                  Text('Failed to submit the form: ${response.statusCode}')),
-        );
-      }
-    } catch (error) {
+      Navigator.of(context).pushNamed('/colormatcher', arguments: {
+        'imageid': imageid,
+        'name': name,
+        'email': email,
+      }); // Navigate to colormatcher page
+    } else {
       // Handle error
-      logger.e('Error submitting form: $error');
-
-      if (!mounted) return; // Check if the widget is still mounted
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error submitting the form: $error')),
+      Fluttertoast.showToast(
+        msg: "Failed to submit the form: ${response.statusCode}",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0,
       );
     }
-  }
+  } catch (error) {
+    // Handle error
+    logger.e('Error submitting form: $error');
 
-  void showSuccessDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Success'),
-          content: const Text('Form data sent successfully!'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
-                Navigator.of(context).pushNamed('/colormatcher', arguments: {
-                  'imageid': imageid,
-                  'name': name,
-                  'email': email,
-                }); // Navigate to colormatcher page
-              },
-              child: const Text('OK'),
-            ),
-          ],
-        );
-      },
+    if (!mounted) return; // Check if the widget is still mounted
+
+    Fluttertoast.showToast(
+      msg: "Error submitting the form: $error",
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      timeInSecForIosWeb: 1,
+      backgroundColor: Colors.red,
+      textColor: Colors.white,
+      fontSize: 16.0,
     );
   }
+}
+
+
+//   void showSuccessDialog(BuildContext context) {
+//     showDialog(
+//       context: context,
+//       builder: (BuildContext context) {
+//         return AlertDialog(
+//           title: const Text('Success'),
+//           content: const Text('Form data sent successfully!'),
+//           actions: [
+//             TextButton(
+//               onPressed: () {
+//                 Navigator.of(context).pop(); // Close the dialog
+//                 Navigator.of(context).pushNamed('/colormatcher', arguments: {
+//                   'imageid': imageid,
+//                   'name': name,
+//                   'email': email,
+//                 }); // Navigate to colormatcher page
+//               },
+//               child: const Text('OK'),
+//             ),
+//           ],
+//         );
+//       },
+//     );
+//   }
 }

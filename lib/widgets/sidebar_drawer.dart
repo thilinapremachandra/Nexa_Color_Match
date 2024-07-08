@@ -8,14 +8,14 @@ class SidebarDrawer extends StatefulWidget {
   const SidebarDrawer({
     required this.name,
     required this.email,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
-  _SidebarDrawerState createState() => _SidebarDrawerState();
+  SidebarDrawerState createState() => SidebarDrawerState();
 }
 
-class _SidebarDrawerState extends State<SidebarDrawer> {
+class SidebarDrawerState extends State<SidebarDrawer> {
   bool isDarkMode = false;
 
   @override

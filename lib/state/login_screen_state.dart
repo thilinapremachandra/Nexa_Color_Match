@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
 
-import '../config.dart';
+import '../utils/config.dart';
 
 class LoginScreenState extends ChangeNotifier {
   final formKey = GlobalKey<FormState>();
