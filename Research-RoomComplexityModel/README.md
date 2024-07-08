@@ -106,11 +106,11 @@ Calculates the entropy-based complexity score.
 Calculates the visual clutter score.
 
 ### Another Way to Run the Code
-If you prefer not to clone the repository, you can simply download the RoomComplexityModel.ipynb file and run it using Jupyter Notebook:
+If you prefer not to clone the repository, you can simply download the `RoomComplexityModel.ipynb` file and run it using Jupyter Notebook:
 
 1. **Download the Notebook:**
 
-Download the RoomComplexityModel.ipynb file from the repository.
+Download the `RoomComplexityModel.ipynb` file from the repository.
 
 2. **Install Dependencies:**
 
@@ -125,7 +125,7 @@ Launch Jupyter Notebook:
 ```sh
 jupyter notebook
 ```
-Open and execute the RoomComplexityModel.ipynb notebook.
+Open and execute the `RoomComplexityModel.ipynb` notebook.
 
 ### Acknowledgements
 This project uses the following libraries:
