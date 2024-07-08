@@ -3,10 +3,10 @@
 This project aims to measure the complexity of a room using three methods: area-based complexity, entropy-based complexity, and visual clutter. These scores are combined using a fuzzy logic approach to determine the overall complexity score and level.
 
 #### Features
-Area-Based Complexity: Measures the ratio of object area to the total room area.
-Entropy-Based Complexity: Calculates the entropy of marked objects to measure randomness and disorder.
-Visual Clutter: Assesses the overlap and density of objects in the room.
-Fuzzy Logic Integration: Combines the three complexity scores to produce an overall complexity score and level.
+- Area-Based Complexity: Measures the ratio of object area to the total room area.
+- Entropy-Based Complexity: Calculates the entropy of marked objects to measure randomness and disorder.
+- Visual Clutter: Assesses the overlap and density of objects in the room.
+- Fuzzy Logic Integration: Combines the three complexity scores to produce an overall complexity score and level.
 
 ### Prerequisites
 - Python 3.x
@@ -43,7 +43,6 @@ Fuzzy Logic Integration: Combines the three complexity scores to produce an over
      python main.py
      ```
 
-By following these steps, you can ensure that the instructions in the README are accurate and functional. If any issues arise during these steps, you might need to adjust the repository structure or update the README accordingly.
 ### Usage
 
 #### Mark Objects in the Image
