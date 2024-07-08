@@ -74,7 +74,7 @@ Entropy-Based Complexity Score: 0.35
 
 Clutter Score: 0.25
 
-Final Complexity Score: 0.58, Complexity Level: High
+Final Complexity Score: 0.77, Complexity Level: High
 
 ### Functions
 
