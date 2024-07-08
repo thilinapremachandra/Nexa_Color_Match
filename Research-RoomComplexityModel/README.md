@@ -37,11 +37,12 @@ This project aims to measure the complexity of a room using three methods: area-
      pip install -r requirements.txt
      ```
 
-4. **Run the Program:**
-   
-     ```sh
-     python RoomComplexityModel.py
-     ```
+4. **Run the Jupyter Notebook:**
+
+```sh
+jupyter notebook
+```
+Open and execute the RoomComplexityModel.ipynb notebook.
 
 ### Usage
 
@@ -103,6 +104,28 @@ Calculates the entropy-based complexity score.
 
 **calculate_visual_clutter_score(rois, image_shape)**  
 Calculates the visual clutter score.
+
+### Another Way to Run the Code
+If you prefer not to clone the repository, you can simply download the RoomComplexityModel.ipynb file and run it using Jupyter Notebook:
+
+1. **Download the Notebook:**
+
+Download the RoomComplexityModel.ipynb file from the repository.
+
+2. **Install Dependencies:**
+
+Ensure you have the required Python packages installed:
+```sh
+pip install opencv-python numpy matplotlib pillow scipy scikit-fuzzy
+```
+
+3. **Run the Jupyter Notebook:**
+
+Launch Jupyter Notebook:
+```sh
+jupyter notebook
+```
+Open and execute the RoomComplexityModel.ipynb notebook.
 
 ### Acknowledgements
 This project uses the following libraries:
